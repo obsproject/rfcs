@@ -28,7 +28,7 @@ Similar functionality:
 
 - Add a button in the OBS UI below "Start Recording" and above "Studio Mode". In English localization, the button would be labeled "Start Virtual Camera".
 - When you click this button, the current output (either the preview output or the broadcast depending on studio mode) is directed to the Virtual Camera Device. The button text then toggles to the localized "Stop Virtual Camera" label.
-- When the user clicks into the settings of their video conferencing app, they will see an entry in the list of cameras labeled "OBS Virtual Camera" (or localized equivalent). When they choose this, the OBS output will be fed from this "device" to the app.
+- When the user clicks into the settings of their video conferencing app, they will see an entry in the list of cameras labeled "OBS Virtual Camera" (no localisation). When they choose this, the OBS output will be fed from this "device" to the app.
 - When the user clicks "Stop Virtual Camera", the virtual device no longer receives frames from OBS. It is up to the consuming application what to do in this state.
 
 # Drawbacks
