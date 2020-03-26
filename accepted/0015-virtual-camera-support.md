@@ -11,7 +11,7 @@ Add the ability to render output to a virtual camera device on Linux, Mac, and W
 OBS is a powerful set of tools to manipulate live video streams that natively supports output to popular streaming services as well as rendering to a local video file. There are a huge number of people who engage in 1:1 or small-scale streaming using video conferencing software like Zoom or Google Hangouts. Many of these people have similar needs to those of traditional streamers, but for one reason or another cannot switch the video conferencing software they use (social graph, corporate policy). One way to deliver OBS output to these applications is to provide a virtual camera in OBS.
 
 Similar functionality: 
-* OBS can be extended by the [OBS-VirtualCam plugin(https://obsproject.com/forum/resources/obs-virtualcam.539/)]. Currently, only Windows is supported.
+* OBS can be extended by the [OBS-VirtualCam plugin](https://obsproject.com/forum/resources/obs-virtualcam.539/). Currently, only Windows is supported.
 * [Wirecast includes virtual camera support](http://www.telestream.net/pdfs/user-guides/Wirecast-8-User-Guide-Windows.pdf) on both Windows and Mac.
 * [It was possible](https://github.com/zakk4223/SyphonInject) to inject Syphon functionality into a process that draws to a GL context until some Mac security changes broke this.
 * [The Snap Camera](https://snapcamera.snapchat.com) is an example of an application that consumes input from a hardware webcam, processes the video stream, and outputs it in real time as a virtual device that appears in apps like Skype, Hangouts, or Zoom. It supports both Mac & PC.
