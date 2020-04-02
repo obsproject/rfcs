@@ -55,7 +55,7 @@ Each platform specific implementation will be separated into 2 cmake projects (s
 
 ## User UX
 
-- When installing OBS user should be asked if he would like to install the platform specific driver to enable virtual camera output on the system
+- When installing OBS should OBS should install the platform specific driver to enable virtual camera output on the system
 - Initial configuration should require very little input from the user, if any. Resolution and framerate of the camera will be pre-defined by the Video settings of OBS, and no effects outside those already provided by OBS will be specially exposed for this output.
 - Add a button in the OBS UI below "Start Recording" and above "Studio Mode". In English localization, the button would be labeled "Start Virtual Camera".
 - When you click this button, the current output (either the preview output or the broadcast depending on studio mode) is directed to the Virtual Camera Device. The button text then toggles to the localized "Stop Virtual Camera" label.
