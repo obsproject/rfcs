@@ -52,6 +52,7 @@ Each platform specific implementation will be separated into 2 cmake projects (s
 - A generic middleware solution to this problem is out of scope at the moment
 - A virtual camera needs to be registered with the system. Usually, this'll be done via the OBS installer/updater
 - The virtual device/output should be accessible by third party applications that support webcams/capture cards
+- OBS supports running multiple instances of itself. If an other instance is already running the virtual camera doesn't start a second virtual camera.
 
 ## User UX
 
