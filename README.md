@@ -11,7 +11,7 @@ community.
 
 The "RFC" (request for comments) process is intended to provide a consistent
 and controlled path for new features, functionality, and changes to undergo
-a peer-review and allow all project stakeholders to weigh in their comments
+a peer-review and allow all interested parties to weigh in their comments
 and ensure the direction is consistent with the vison of the project.
 
 
@@ -40,7 +40,10 @@ OBS Studio, obs-browser, or any of the other plugins/modules. What constitutes a
 on what part of the ecosystem you are proposing to change, but may include the
 following.
 
-  - ????
+  - Entirely new features/functionality that are not currently available
+  - Major changes to existing features, or requests to redesign those features
+  - Things that drastically change the end-user experience, both from a
+    workflow and UX perspective.
 
 Some changes do not require an RFC:
 
@@ -119,14 +122,14 @@ It is recommended that no work start on implementation until an RFC is accepted.
     needs to have already been clearly articulated, and there should not be a
     strong consensus *against* that position outside of the team. Team
     members use their best judgment in taking this step, and the FCP itself
-    ensures there is ample time and notification for stakeholders to push back
-    if it is made prematurely.
+    ensures there is ample time and notification for interested parties to push
+    back if it is made prematurely.
     - For RFCs with lengthy discussion, the motion to FCP is usually preceded by
       a *summary comment* trying to lay out the current state of the discussion
       and major tradeoffs/points of disagreement.
   - The FCP lasts ten calendar days, so that it is open for at least 5 business
-    days. This way all stakeholders have a chance to lodge any final objections
-	before a decision is reached.
+    days. This way all parties have a chance to lodge any final objections
+    before a decision is reached.
   - In most cases, the FCP period is quiet, and the RFC is either merged or
     closed. However, sometimes substantial new arguments or ideas are raised,
     the FCP is canceled, and the RFC goes back into development mode.
@@ -137,8 +140,8 @@ It is recommended that no work start on implementation until an RFC is accepted.
 Once an RFC becomes "active" then authors may implement it and submit the
 feature as a pull request to the OBS Porject (or appropriate module) repo. Being 
 "active" is not a rubber stamp, and in particular still does not mean the feature
-will ultimately be merged; it does mean that in principle all the major stakeholders
-have agreed to the feature and are amenable to merging it.
+will ultimately be merged; it does mean that in principle all the major interested
+parties have agreed to the feature and are amenable to merging it.
 
 Furthermore, the fact that a given RFC has been accepted and is "active"
 implies nothing about what priority is assigned to its implementation, nor does
@@ -204,8 +207,9 @@ closed (as part of the rejection process). An RFC closed with "postponed" is
 marked as such because we want neither to think about evaluating the proposal
 nor about implementing the described feature until some time in the future, and
 we believe that we can afford to wait until then to do so. Postponed pull
-requests may be re-opened when the time is right. We don't have any formal
-process for that, you should ask members of the core team.
+requests may be re-opened when the time is right. There is no formal process
+for when a postponed RFC is reopened. We recommend asking us directly about
+any postponed RFCs in our [official Discord Server].
 
 Usually an RFC pull request marked as "postponed" has already passed an
 informal first round of evaluation, namely the round of "do we think we would
