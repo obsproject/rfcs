@@ -42,8 +42,10 @@ following.
 
   - Entirely new features/functionality that are not currently available
   - Major changes to existing features, or requests to redesign those features
+  - Changes to the internal engineering design of any part of the program
   - Things that drastically change the end-user experience, both from a
     workflow and UX perspective.
+  - Changes to API, ABI, or settings storage format of the program
 
 Some changes do not require an RFC:
 
@@ -58,6 +60,7 @@ Some changes do not require an RFC:
 
 If you submit a pull request to implement a new feature without going through
 the RFC process, it may be closed with a polite request to submit an RFC first.
+If you are unsure if your change requires an RFC, just ask!
 
 ## Before creating an RFC
 [Before creating an RFC]: #before-creating-an-rfc
