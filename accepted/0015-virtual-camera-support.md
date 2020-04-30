@@ -13,10 +13,9 @@ OBS is a powerful set of tools to manipulate live video streams that natively su
 OBS can meet this need by creating a virtual camera device and outputting to that device such that programs capable of consuming camera input can now consume OBS input with no extra development.
 
 Similar functionality: 
-* OBS can be extended by the [OBS-VirtualCam plugin](https://obsproject.com/forum/resources/obs-virtualcam.539/) (Windows) and [obs-v4l2sink plugin](https://github.com/CatxFish/obs-v4l2sink). Currently, there is no OBS solution for macOS.
+* OBS can be extended by the [OBS-VirtualCam plugin](https://obsproject.com/forum/resources/obs-virtualcam.539/) (Windows) and [obs-v4l2sink plugin](https://github.com/CatxFish/obs-v4l2sink) (Linux). Currently, there is no OBS solution for macOS.
 * [Wirecast includes virtual camera support](http://www.telestream.net/pdfs/user-guides/Wirecast-8-User-Guide-Windows.pdf) on both Windows and Mac.
-* [It was possible](https://github.com/zakk4223/SyphonInject) to inject Syphon functionality into a process that draws to a GL context until some Mac security changes broke this.
-* [The Snap Camera](https://snapcamera.snapchat.com) is an example of an application that consumes input from a hardware webcam, processes the video stream, and outputs it in real time as a virtual device that appears in apps like Skype, Hangouts, or Zoom. It supports both Mac & PC.
+* [Webcamoid](https://webcamoid.github.io/) is an existing open-source cross-platform virtual camera application, which may have some useful tidbits when investigating implementation details for each platform.
 
 # Detailed design
 
@@ -65,3 +64,4 @@ Feature Set:
 # Alternatives
 
 * Pursue a more generic output interface and (encourage someone else to?) build a generic virtual camera to consume it. E.g. output via RTSP, NDI and have a "NDI Cam" that has nothing to do with OBS.
+* Adapt Webcamoid's source code for our use. This may end up being more involved than we'd like, however, and might end up making the feature more complicated than we want.
