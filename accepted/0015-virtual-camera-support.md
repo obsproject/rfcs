@@ -38,7 +38,7 @@ Feature Set:
 
 ## Platform specific implementations
 
-* On **Windows**, the implementation of this plugin should leverage [libdshowcapture](https://github.com/obsproject/libdshowcapture). OBS already depends on libdshowcapture, so using this existing library service to limit the number of extra dependencies that OBS needs
+* On **Windows**, the implementation of this plugin should leverage [libdshowcapture](https://github.com/obsproject/libdshowcapture). OBS already depends on libdshowcapture, so using this existing library service limits the need to add additional dependecies.
 * On **macOS**, OBS will need a plugin to output over IPC to a CoreMediaIO DAL plugin that is registered on the system upon OBS install. This will require repackaging the installer as a `.pkg` instead of a compressed `.app`.
 * On **Linux**, the most straightforward way to implement this functionality would be to output via [v4l2sink](https://gstreamer.freedesktop.org/documentation/video4linux2/v4l2sink.html?gi-language=c). Note that this still requires the user to have [v4l2loopback](https://github.com/umlaeute/v4l2loopback) installed to consume this output. For package installations, a dependency should be placed on v4l2loopback such that it is installed by the package manager when OBS is installed.
 
@@ -46,12 +46,12 @@ Feature Set:
 
 - This RFC is explicitly for an OBS-specific implementation of output from OBS to a virtual camera. A generic middleware solution to this problem is out of scope for this problem.
 - The virtual camera will need to be registered with the system upon OBS installation.
-- The virtual camera should be accessible by third party applications that support webcams/capture cards
-- OBS supports running multiple instances of itself. If two instances of OBS run simultaneously, the first instance to output to the device should "win". The second instance should give an error saying that the output device is already in use by another instance of OBS.
+- The virtual camera should be accessible by third party applications that support webcams/capture cards.
+- OBS supports running multiple instances of itself. If two instances of OBS run simultaneously, the first instance to output to the device should "win" the race to communicate to the virtual camera device. The second instance should give an error saying that the output device is already in use by another instance of OBS, if possible.
 
 ## User UX
 
-* When installing, OBS should OBS should install the platform specific driver to enable virtual camera output on the system
+* When installing, OBS should install the platform specific driver to enable virtual camera output on the system
 * Initial configuration should require very little input from the user, if any. Resolution and framerate of the camera will be pre-defined by the Video settings of OBS, and no effects outside those already provided by OBS will be specially exposed for this output.
 * Add a button in the OBS UI below "Start Recording" and above "Studio Mode". In English localization, the button would be labeled "Start Virtual Camera".
 * When you click this button, the current output is directed to the virtual camera device. The button text then toggles to the localized "Stop Virtual Camera" label.
