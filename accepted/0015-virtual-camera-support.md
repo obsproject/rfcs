@@ -33,6 +33,8 @@ Feature Set:
     * It informs the user that the output is not started yet, and needs to be started before output will be sent from OBS.
     * It is aesthetically pleasing such that, if the output is accidentally sent to viewers (for example, if the user fails to start the virtual output before joining a Zoom call), it is not unnecessarily gaudy or technical.
     * It requires minimal localization, or provides a way to localize any displayed text on the image
+* The auto-config tool is updated to include "outputting to a virtual camera" as their primary use case, with reasonable recommendations. Since this doesn't require testing encoding or bandwidth settings, the resolution should be set to 1920x1080 and frame rate set to 30FPS.
+* A new command line flag `--startvirtualcam` is added, which starts the virtual cam automatically when OBS is started.
 
 ## Platform specific implementations
 
