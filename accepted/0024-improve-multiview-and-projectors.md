@@ -27,8 +27,8 @@ Add more freedom to customize the multiview:
   - always on top
 - show/hide safe areas (EBU R 95) for the preview and scenes/sources
 
-- Add a right click menu to select which scene is visible in one region of the multiview
-- Add an option to transition to the scene by double clicking on one region
+- Add a right click menu to select what scene or source (including the preview and program) should be displayed in a cell of the multiview
+- Add an option to transition to the scene by double clicking on one cell
 
 ### Changes in the projectors
 
@@ -44,7 +44,7 @@ Add more freedom to customize the multiview:
   Having multiple projectors opened at the same time clutters the taskbar. It needs a second look to distinguish the main window from the projectors.
 - Provide an option in the settings to hide/show the window frame. 
   When several projectors are aligned right next to each other the frame takes up screen space. 
-If no window frame is activated, the window should be movable when clicking on the the window content
+If no window frame is activated, the window should be movable when dragging the the window content
 - Make the projector and multiview windows dockable.
   Docking the projectors in the main window would allow to customize the UI of OBS even more.
 - Add a right click menu to enable/disable "always on top" per projector or per multiview window
