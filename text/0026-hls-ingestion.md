@@ -12,7 +12,7 @@ stream with the same quality while using a lower bitrate decreasing buffering.
 
 Here is the
 [developer guide](https://developers.google.com/youtube/v3/live/guides/hls-ingestion)
-for HLS live streaming on YouTube for example. Adding better UI support for it in OBS will
+for HLS live streaming on YouTube for example. Adding better support for it in OBS will
 make HLS live streaming with newer codecs much more accessible to end-users.
 
 # Drawbacks
