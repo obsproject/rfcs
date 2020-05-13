@@ -1,6 +1,6 @@
 - Start Date: 2020-03-25
 - RFC PR: #15
-- Related Github Issue: https://github.com/obsproject/obs-studio/issues/25685
+- Related Github Issue: https://github.com/obsproject/obs-studio/issues/2568
 
 # Summary
 
