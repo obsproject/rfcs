@@ -39,7 +39,7 @@ Several changes need to be made to support this new feature, including UI, front
 ## Config: Changes to service.json configuration file
 The [service.json](https://github.com/obsproject/obs-studio/blob/1bfe4614734e961d34e46f73fd20d7e22855a4be/UI/window-basic-auto-config.cpp#L31) file currently only stores configuration (as json) for a single streaming service. An example of the current format is shown below. Two fields are added to the config –– a non-mutable id assigned to the each service definition at creation time, and a mutable name which is meant to be displayed on the UI list widget described earlier.
 
-``` json
+```json
 
 {
     "settings": {
@@ -111,7 +111,7 @@ Add name and id fields to each output similar to the service.json
   Returns a new reference to the current streaming service object.
   
   New definition:
-    ```
+    ```c
       void obs_frontend_get_streaming_services(struct obs_frontend_service_list *services)
     ```
   The services param is a pointer to an **obs_frontend_service_list** structure to receive the list of reference-incremented services. Release with **obs_frontend_service_list_free()**.
@@ -119,14 +119,14 @@ Add name and id fields to each output similar to the service.json
 * Rename **obs_frontend_save_streaming_service** to and **obs_frontend_save_streaming_services** <br />
 
   Current definition:
-  ```
+  ```c
     void obs_frontend_save_streaming_service(void)
   ```
 
   Saves the current streaming service data. 
 
   New definition:
-  ```
+  ```c
     void obs_frontend_save_streaming_services(void)
   ```
   Saves the current streaming service data.
