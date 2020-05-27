@@ -11,87 +11,100 @@ slideshow.
 
 It should be able to show all of the selected images.
 
-A minor issue that may be left out of this RFC is the way random playback is behaving. Currently it picks the 
-next image completely random. This may result in some images getting shown multiple times while others may get 
-shown seldom or not at all. The current implementation also suffers from modulo bias which means the depending 
-on the number of images, the first few images may be "favored" by the algorithm and shown more often. The 
-author's expectation for random playback is to play back the whole list once, but in random order (shuffled),
-thus each image is shown exactly once before the first repeat is seen.
-
 
 # Detailed design
 
 ## Main design 
 
 * The slideshow gets a list of files the user has configured to play.
-* At the start, the list is copied to a new list, the playback queue.
-  * The reason for this is to support an improvement in the way random playback is handled (this is discussed below).
-  * It also allows to remove invalid/missing images from the queue but keeps the user's intention (play this 
-    file), so at the next opportunity the slideshow may try to handle this file again.
-* There is a cache/preload buffer that stores only the decoded images that are needed in the near-future or that
-  have been used recently (to handle "go back an image").
-* The video tick function fetches images from the cache.
-  * If at a tick an images had to be shown but it wasn't available in the cache yet, the transition is deferred 
-    and tried again at the next tick. This should happen seldomly, for example right at the start when the cache
-    was not yet able to load the current image.
-* A dedicated thread is responsible for managing the cache/preload content: images are loaded as required 
-  according to the current position in the queue and entries that are no longer needed are evicted, freeing
-  their resources.
-  * This thread is waiting for an event so that it's sleeping when there is no work to do and woken up once the
-    index into the playback queue is advanced.
-  * First, it ensures that the image for the current playback position is loaded.
-  * Then, it ensures that the next few images (subject to compile-time constant or setting) are loaded.
-  * Then, it ensures that the previous few images are loaded to support going backwards.
-  * Lastly, it evicts all other images from the cache, thus unloading their resources if there are no more 
-    references (for example, from a transition).
-* Increasing/decreasing the index into the queue signals the event that wakes up the caching/preloading thread
-  to do its work.
+* There are two load modes, which the user can choose from: `preload` and `on-demand`.
+  * The `preload` mode behaves like the current slideshow does: images are loaded at start until a (currently
+    hard-coded) memory limit is reached. Remaining paths are discarded.
+  * In `on-demand` mode, a thread is spawned that loads a small amount of images into a cache. As the slideshow
+    progresses, images are evicted from the cache and soon-to-be-required images are loaded on this thread.
+* On update, the list of files to play is read.
+* A central list, `entries` is derived from the list of files.
+  * An entry stores the path and loaded image source. In `on-demand` mode, the source may be NULL. In `preload` 
+    mode, the source is always set.
+  * Access to the list (and most other properties) is only done with a mutex.
+    * Even in `preload` mode, there are at least two threads that need to access the cache: the video tick
+      thread and the thread running `update`.
+    * The locked code parts should be kept as short as possible. No expensive operations should be done while
+      the mutex is held.
+* Video tick:
+  * Transitions, stop, pause, etc. are handled in the same way as the current slideshow.
+  * If the elapsed time reaches the transition to the next entry:
+    * The next cache entry is read and displayed.
+    * In `preload` mode, the entry will always exist.
+    * In `on-demand` mode, it's possible that the worker thread was not able to fetch the next image in time.
+      In this case, it is remembered that a transition was supposed to happen and is retried in the next video 
+      tick. The elapsed time is treated as if the transition was successful.
 
+## Preload mode
 
-## Random playback
+* Update:
+  * WIP: Reload
+    * If there is an old file list/cache, it is compared to the new file list. Old cache entries that do not
+      exist in the new file list are evicted immediately. Cache entries for files in the new list are reused.
+    * TBD: How to handle the memory size limit correctly? It's easier but way slower to just evict the old
+      cache and completely rebuild it (treating it as a first start case), unless the new list is identical to
+      the old list.
+  * First start:
+    * The file list is traversed and each file is immediately loaded and stored in `entries` list until the 
+      memory limit is hit.
+  * The `entries` list is truncated to the number of loaded images.
+  * The `entries` list stores all loaded images and does not evict them at runtime.
+* Current item updates:
+  * Changing the current item (advancing to the next, previous or a random item) does not need any special
+    handling. The index can be updated directly.
 
-* At the start of playback, the file queue is shuffled.
-* The index then advances in the queue as it would if no randomization was requested.
-* If the end of the queue is reached, it is re-shuffled.
-* To avoid having images shown immediately after another when the queue is shuffled again, we may ensure that
-  the first few items of the newly shuffled queue are not part of the tail of the previous shuffled queue.
-  * For example, ensure that the images at the start of the newly shuffled queue are not part of the last 20% or
-    so of the previous queue.
+## On-demand mode
 
+* Update:
+  * All remaining loaded image sources are unloaded, `cache_queue` and `cached_entries` set (see below) are
+    cleared.
+  * The `entries` list is updated using the file list with all sources set to NULL.
+  * The cache thread is signaled to start loading images.
+* Current item updates:
+  * In addition to the cache, there is a cache index list called `cache_queue`. It tracks which items in the
+    cache should be populated.
+  * To track the actually populated entries and calculate what to do (evict, load), there is a cache index
+    list called `cached_entries_set`.
+      * While the `cache_queue` may contain duplicate indices and are in any order, the `cached_entries_set` is
+        an ordered, dedulicated list.
+  * Advancing to the next item modifies the cache index list:
+    * The cache index list `cache_queue` stores the last few indices that were displayed (to go back), the
+      current index and a few upcoming indices. It thus controls the number of items to load in the cache.
+    * For example, if two items for history and three items for prebuffering are chosen, the cache list has a 
+      size of 2 + 1 + 3 = 6. 
+    * Every time the "next" image is requested, the cache index list is first shifted by one, discarding the 
+      oldest index.
+      * For random playback, a new random index is placed at the "end" of the cache index list.
+      * For sequential playback, the next index in the sequence is placed at the "end" of the cache index 
+        list.
+* The worker thread operates as follows:
+  * The thread runs in an endless loop until its thread gets cancelled.
+  * It waits on an event to get triggered so it can sleep when there's nothing to do.
+  * It inspects `cache_queue`, derives a sorted, deduplicated list of indices and calculates which entries
+    to evict or load by comparing with `cached_entries_set`.
+  * All entries that can be evicted have their sources released immediately.
+  * However, only one image is loaded per iteration.
+    * The next image to load should consider the current item and always try to load that first, if required.
+    * Only one image is loaded per iteration since it may take some time and the current image index may have 
+      been changed.
+    * Once the image is loaded, its source is placed into its corresponding entry.
 
 # User UX
 
-No changes are needed, unless it's decided to support both the current (fully random) and new (shuffled queue)
-random playback concepts.
+The following additions are needed to the current slideshow UI:
 
-
-# Drawbacks
-
-It's possible that an image is not yet ready when the elapsed time demands a transition to the next image. 
-Displaying that image is then deferred until the image has been loaded.
-
-
+* The "Bounding Size/Aspect Ratio" cannot support "Automatic" any more. The user has to chose a resolution.
+* A selection for the load mode `preload` and `on-demand` mode.
 
 # Unresolved questions
 
-Both the current and hereby proposed implementations make OBS stall after configuration changes and on app-load.
-This is because all images in the list are loaded immediately: the current implementation does so because it
-only preloads and cannot load on-demand, the proposed implementation because the maximum width and height of the
-images need to be determined. Due to the memory limitations, the current implementation stops after a few images
-thus limiting the stall; the hereby proposed implementation does not stop and thus may stall OBS for a longer
-time period.
-
-It's unclear to the author how to resolve this yet:
-
-* Can we get rid of determining the image sizes altogether?
-* If not, is it possible to offload this work into a thread and update the slideshow source once the values have
-  changed?
-
-An additional cache may help improve the situation if we are not able to get rid of looking at each image: this
-cache would store the file paths, last file modification date and the image size. When the file list needs to
-be evaluated again after settings have changed, this cache may be consulted and the corresponding files may be
-`stat`ed to determine whether the cache entry is still valid. If there is none or the file has changed, only
-then would the image need to be loaded to determine its size.
+For `preload` mode, the user should be alerted somehow if not all images in the list could get loaded due to
+the memory limit.
 
 
 # Additional Information
