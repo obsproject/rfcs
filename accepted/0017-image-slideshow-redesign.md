@@ -39,21 +39,24 @@ It should be able to show all of the selected images.
     * In `on-demand` mode, it's possible that the worker thread was not able to fetch the next image in time.
       In this case, it is remembered that a transition was supposed to happen and is retried in the next video 
       tick. The elapsed time is treated as if the transition was successful.
+* Config update:
+  * To make it easier to handle both modes and also to handle switching modes correctly, all entries are 
+    unloaded on config change.
+  * The `file_paths` list is read/built.
+  * The `entries` list is created by iterating over the `file_paths`.
+    * In `preload` mode, the image sources are immediately loaded until the hard-coded memory limit or the end
+      of the `file_paths` is reached, whichever comes first.
+    * In `on-demand` mode, entries for all file paths are created but no image source is loaded yet.
+  * The current item is set to the first entry.
 
 ## Preload mode
 
 * Update:
-  * WIP: Reload
-    * If there is an old file list/cache, it is compared to the new file list. Old cache entries that do not
-      exist in the new file list are evicted immediately. Cache entries for files in the new list are reused.
-    * TBD: How to handle the memory size limit correctly? It's easier but way slower to just evict the old
-      cache and completely rebuild it (treating it as a first start case), unless the new list is identical to
-      the old list.
-  * First start:
-    * The file list is traversed and each file is immediately loaded and stored in `entries` list until the 
-      memory limit is hit.
-  * The `entries` list is truncated to the number of loaded images.
-  * The `entries` list stores all loaded images and does not evict them at runtime.
+  * As explained in the _Main Design_ section, the `entries` list is built by iterating over the `file_paths`
+    and loading each file.
+  * Entries for which the image cannot get loaded are discarded.
+  * Once the memory limit is reached, loading stops. Thus, `entries` may be shorter than `file_paths`.
+  * The `entries` list thus stores all loaded images and does not evict them at runtime in this mode.
 * Current item updates:
   * Changing the current item (advancing to the next, previous or a random item) does not need any special
     handling. The index can be updated directly.
@@ -61,9 +64,8 @@ It should be able to show all of the selected images.
 ## On-demand mode
 
 * Update:
-  * All remaining loaded image sources are unloaded, `cache_queue` and `cached_entries` set (see below) are
-    cleared.
-  * The `entries` list is updated using the file list with all sources set to NULL.
+  * As explained in the _Main Design_ section, the `entries` list is built by iterating over the `file_paths`
+    but no images are loaded at that point.
   * The cache thread is signaled to start loading images.
 * Current item updates:
   * In addition to the cache, there is a cache index list called `cache_queue`. It tracks which items in the
@@ -71,12 +73,14 @@ It should be able to show all of the selected images.
   * To track the actually populated entries and calculate what to do (evict, load), there is a cache index
     list called `cached_entries_set`.
       * While the `cache_queue` may contain duplicate indices and are in any order, the `cached_entries_set` is
-        an ordered, dedulicated list.
+        an ordered, deduplicated list.
   * Advancing to the next item modifies the cache index list:
     * The cache index list `cache_queue` stores the last few indices that were displayed (to go back), the
       current index and a few upcoming indices. It thus controls the number of items to load in the cache.
     * For example, if two items for history and three items for prebuffering are chosen, the cache list has a 
-      size of 2 + 1 + 3 = 6. 
+      size of 2 + 1 + 3 = 6.
+    * Duplicate indices are allowed in `cache_queue` (after all, a slideshow with just one image must be 
+      handled as well).
     * Every time the "next" image is requested, the cache index list is first shifted by one, discarding the 
       oldest index.
       * For random playback, a new random index is placed at the "end" of the cache index list.
