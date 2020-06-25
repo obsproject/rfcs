@@ -48,15 +48,16 @@ Output type plugins get added to a QComboBox within the "input type/mapping page
 * Joystick
 * MQTT
 * (possibly) WebSockets*
+* (possibly) Macros
 * OBS -- onObsFrontendChange -- Gives us a graphical way to map obs events to outputs
 ### Output
 * Midi* 
 * OSC
 * MQTT
 * (possibly) WebSockets*
-
+* (possibly) Macros**
 *Websockets and MIDI already exist with the obs-websockets and obs-midi plugins
-
+**Macro support is a future idea, but would allow for creation of multiple action outputs as an output plugin, it is included in the input section as it would be another entry in the list widget
 # UI 
 A rough idea of a possible ui
 ## Hotkeys
