@@ -1,6 +1,6 @@
 # Summary
 
-Add a frontent event to the API that would enable reacting to replay buffer being saved from inside a plugin
+Add a frontend event to the API that would enable reacting to replay buffer being saved from inside a plugin
 
 # Motivation
 
