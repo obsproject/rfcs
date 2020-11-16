@@ -133,6 +133,34 @@ Add name and id fields to each output similar to the service.json
 
 * We can leave the current APIs in place and mark them as OBS_DEPRECATED.
 
+# Additional Changes
+In addition to supporting multicasting via multiple services, we also plan to support streaming the same video to multiple backends of the same streaming platform. This will involve adding the ability to specify multiple backend urls for a service in the [services.json](https://github.com/obsproject/obs-studio/blob/master/plugins/rtmp-services/data/services.json) file (which contains the service definitions).
+
+Instead of specifying a single URL as server urls are currently specified, we will also allow a comma separated list of urls when defining the servers for a service. Note that this change isn't externally visible on the UI. In the example below, the url for "Server A" and "Server B" are defined using the current format while "Server A & B" uses the new comma-separated format.
+
+```json
+        {
+            "name": "Test Service",
+            "common": true,
+            "alt_names": [
+                "Test / Service"
+            ],
+            "servers": [
+                {
+                    "name": "Server A",
+                    "url": "rtmp://a.rtmp.test.com/"
+                },
+                {
+                    "name": "Server B",
+                    "url": "rtmp://b.rtmp.test.com/"
+                },
+                {
+                    "name": "Server A & B",
+                    "url": "rtmp://a.rtmp.test.com/,rtmp://b.rtmp.test.com/"
+                }
+            ]
+        }
+```
 
 # Drawbacks
 
