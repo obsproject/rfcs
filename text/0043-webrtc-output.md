@@ -78,6 +78,11 @@ char* sdp = obs_webrtc_create_answer(obs_service_t *service);
 	Set the SDP we use locally, generally returned from `obs_webrtc_create_answer`
 */
 obs_webrtc_set_local_description(obs_service_t *service, sdp_type type, const char *sdp);
+
+/**
+	With whip we will need to generate an offer first
+*/
+char* sdp = obs_webrtc_create_offer(obs_service_t *service);
 ```
 
 # Concerns / Questions
