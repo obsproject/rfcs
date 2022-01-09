@@ -31,7 +31,7 @@ It will also provide the ability for some stream services to be able to made the
 ## UI
 The Stream settings page and the auto-wizard will only contain a combo box listing registered services with also the "Show All" option. And the property view of the service will be shown under it.
 
-A "common" service is a service that is shown that is shown in the default service list. To keep this attributes with the UI, a flag will be added to Service API to allow services to not be in this list, so by default third-party plugins will be shown without the need to click on the "Show all" option.
+A "common" service is a service that is shown in the default service list. To keep this attributes with the UI, a flag will be added to Service API to allow services to not be in this list, so by default third-party plugins will be shown without the need to click on the "Show all" option.
 
 Service with an VOD/archive track feature will also under a flag. So this option will only be shown if the combo service-protocol is compatible with this feature.
 This feature should be considered different from a multi-track feature.
@@ -136,7 +136,13 @@ Since the service API is in a way unusable by third-party, any breakage will onl
 ### Service integrations new flow
 
 #### How docks and CEF widget for OAuth will be created
-The front-end API will need to have a way to access and use `cef` and `panel_cookies` from the main window.
+For the docks we could add the possibility to add them through the frontend API.
+
+Adding to the frontend API the possibility to generate the browser widget neutral on the system use (CEF). Also need to add a function asking OBS Studio is browser features are availlable.
+
+OR
+
+Maybe adding an API to `obs-browser` to allow plugins to create widget and docks it without using the frontend API as a bridge.
 
 #### How docks will be added
 
@@ -240,16 +246,110 @@ The old actually looks like this:
 - About `"recommended"`, most of the options seems to H264 related
 - `"common"`, the name makes it not understandable at the first sight maybe adding some documention would be good thing.
 
-#### New format (draft)
-Here is a example:
+#### New format (WIP)
+The new format will be parsable with a new interface library named `service-json-parser` to allow first-party plugins to read this format rather than recreating the wheel.
+
+The new format will be considered as the version 4.
+
+This format allow some specific additions parsed by getter added to the concerned plugin.
+
+Multi-service plugins should have a JSON root that look like this:
 ```json
 {
-    "format_version": 1,
+    "format_version": 4,
+    "services": []
+}
+```
+`"services"` is an array of service objects.
+
+Service plugin like integrations one should have a JSON root that look like this:
+```json
+{
+    "format_version": 4,
+    "service": {}
+}
+```
+`"service"` is the service object itself.
+
+##### Plugins specific additions
+Those additions are added like extensions to the service object format.
+
+Getters for those customisations are implemented in the plugin itself.
+- In `obs-services`:
+  - `"id"` (required): service identifier, services are no longer identified by their name. Added because this plugin is multi-services.
+  - `"name"` (required): name of the service. Added because this plugin is multi-services.
+  - `"common"` (optional, false by default): this object is added in service objects of this plugin to identify which service in "common" or not. No third-party plugin should have this behavior.
+- In `obs-youtube`:
+  - Servers name are translated.
+  - `"name_suffix"` in `"servers"` (optional): suffix added to the server name after being translated.
+
+Specific documentations about adding service in `obs-services` should be made.
+
+##### Service object format
+<sup>S</sup>: Should be required by any first-party plugin
+
+<sup>O</sup>: Optional in `obs-services`, can be required or not used at all in first-party one-service plugins depending on their implementations.
+
+- `"more_info_link"`<sup>O</sup>: link with more info about the service.
+- `"stream_key_link"`<sup>O</sup>: link where the user can find his stream key.
+- `"servers"`<sup>S</sup>: array of servers.
+  - `"name"` (required): name of the server.
+  - `"protocol"` (required if if the url prefix can't help identify the protocol, like HLS protocol): protocol identifier (e.g. RTMP, SRT, RIST).
+  - `"url"` (required): url of the server.
+- `"supported_codecs"`<sup>O</sup>: codec not supported by a protocol will not be used. If not set, fallback to what the protocol can support.
+  - `"video"`<sup>O</sup>: video codecs supported by the service.
+    - `"any_protocol"`<sup>O</sup>: array of strings with codecs' name supported by the service for any protocol.
+    - *`"protocol name"`*<sup>O</sup>: (e.g. `"HLS":`) array of strings with codecs' name supported by only this protocol. This array is merged with `"any_protocol"`.
+  - `"audio"`: audio codecs supported by the service.
+    - `"any_protocol"`<sup>O</sup>: array of strings with codecs' name supported by the service for any protocol.
+    - *`"protocol name"`*<sup>O</sup>: (e.g. `"HLS":`) array of strings with codecs' name only supported by this protocol. This array is merged with `"any_protocol"`.
+- `"supported_resolutions"`<sup>O</sup>: array of strings with resolutions (e.g. `"1280x720"`) supported by the service for any protocol.
+  - `"with_framerates"`<sup>O</sup>: default to false. If false each entry shall be put as this "1920x1080", if true it will be put with a framerate as this "1920x1080@30". Only those framerate will be be considered supported.
+  - `"array"`(required): Array of resolutions
+- `"maximums"`<sup>O</sup>: maximums allowed by the service.
+  - `"fps"`<sup>O</sup>: maximum framerate allowed by the service. May be overrided if `"supported_resolutions"` is set with framerates (if 1080p is limited to 30 FPS and 720p to 60, the maximum will change depending on the resolution).
+  - `"video_bitrate"`<sup>O</sup>: maximum video bitrate. Can be set per codec. Unused if `"video_bitrate_matrix"` is set.
+    - `"any_codec"`<sup>O</sup>: bitrate for any codec.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) bitrate for this codec. It overrides `"any_codec"`.
+  - `"video_bitrate_matrix"`<sup>O</sup> (requires `"supported_resolutions"` with framerates): maximum bitrate based on resolutions and framerates from `"supported_resolutions"`.
+    - *`"CX x CY @ FPS"`*<sup>O</sup> (**one per resolution**): (e.g. `"1280x720@60":`) maximum bitrate for supported resolution of this service. Can be set per codec.
+      - `"any_codec"`<sup>O</sup>: bitrate for any codec.
+      - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
+  - `"audio_bitrate"`<sup>O</sup>: maximum audio bitrate. Can be set per codec.
+    - `"any_codec"`<sup>O</sup>: bitrate for any codecs.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
+- `"recommended"`<sup>O</sup>: recommended settings that become the defaults when using this service.
+  - `"keyint"`<sup>O</sup>: is now per video codec.
+    - `"any_codec"`<sup>O</sup>: keyframe interval for any codec.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) keyframe interval for this codec. It overrides `"any_codec"`.
+  - `"bframes"`<sup>O</sup>: is now per video codec.
+    - `"any_codec"`<sup>O</sup>: b-frames for any codec.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) b-frames for this codec. It overrides `"any_codec"`.
+  - `"profile"`<sup>O</sup>: is now per video codec.
+    - No `"any_codec"` because profile is surely different between codecs.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) profile for this codec if available.  It overrides `"any_codec"`.
+  - `"x264opts"`<sup>O</sup>: no change.
+  - `"fps"`<sup>O</sup>: recommended framerate for this service. Unused if `"supported_resolutions"` is set with framerates.
+  - `"video_bitrate"`<sup>O</sup>: recommended video bitrate. Can be set per codec. Unused if `"video_bitrate_matrix"` is set.
+    - `"any_codec"`<sup>O</sup>: bitrate for any codec.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) bitrate for this codec. It overrides `"any_codec"`.
+  - `"video_bitrate_matrix"`<sup>O</sup> (requires `"supported_resolutions"` with with framerates): recommended bitrate based on resolutions and framerates from `"supported_resolutions"`.
+    - *`"CX x CY @ FPS"`*<sup>O</sup> (**one per resolution**): (e.g. `"1280x720@60":`) recommended bitrate for supported resolution of this service.
+      - `"any_codec"`<sup>O</sup>: bitrate for any codec.
+      - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) for this codec. It overrides `"any_codec"`.
+  - `"audio_bitrate"`<sup>O</sup>: maximum audio bitrate. Can be set per codec.
+    - `"any_codec"`<sup>O</sup>: bitrate for any codecs.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
+
+##### Example
+Here is a example with `obs-services` in mind:
+```json
+{
+    "format_version": 4,
     "services": [
         {
             "id": "example",
             "name": "Example of stream services",
-            "common": false,
             "more_info_link": "https://example.com/more_info",
             "stream_key_link": "https://example.com/stream_key",
             "servers": [
@@ -337,78 +437,15 @@ Here is a example:
 }
 ```
 
-- `"format_version"`: no change.
-- `"services"`: array of services.
-  - **`"id"`**: service identifier, services are no longer identified by their name.
-  - `"name"` (if multiple servers): no change.
-  - `"common"` (optional): no change.
-  - `"more_info_link"` (optional): no change.
-  - `"stream_key_link"` (optional): no change.
-  - ~~`"alt_names"`~~: removed.
-  - `"servers"`: array of servers.
-    - `"name"`: no change.
-    - **`"protocol"`** (optional): needed if the url prefix can't help identify the protocol.
-    - `"url"`: no change.
-  - **`"supported_codecs"`** (optional): codec not supported by a protocol will not be used. If not set, fallback to what the protocol support.
-    - **`"video"`** (optional): video codecs supported by the service.
-      - **`"any_protocol"`** (optional): array of strings with codecs' name supported by the service for any protocol.
-      - ***`"protocol name"`*** (optional): (e.g. `"HLS":`) array of strings with codecs' name supported by only this protocol. This array is merged with `"any_protocol"`.
-    - **`"audio"`** (optional): audio codecs supported by the service.
-      - **`"any_protocol"`** (optional): array of strings with codecs' name supported by the service for any protocol.
-      - ***`"protocol name"`*** (optional): (e.g. `"HLS":`) array of strings with codecs' name only supported by this protocol. This array is merged with `"any_protocol"`.
-  - **`"supported_resolutions"`** (optional): array of strings with resolutions (e.g. `"1280x720"`) supported by the service for any protocol.
-    - **`"with_framerates"`** (optional): default to false. If false each entry shall be put as this "1920x1080", if true it will be put with a framerate as this "1920x1080@30". Only those framerate will be be considered supported.
-    - **`"array"`**: Array of resolutions
-  - **`"maximums"`** (optional): maximums allowed by the service.
-    - **`"fps"`** (optional): maximum framerate allowed by the service. May be overrided if `"supported_resolutions"` is set with framerates (if 1080p is limited to 30 FPS and 720p to 60, the maximum will change depending on the resolution).
-    - **`"video_bitrate"`** (optional): maximum video bitrate. Can be set per codec. Unused if `"video_bitrate_matrix"` is set.
-      - **`"any_codec"`** (optional): bitrate for any codec.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) bitrate for this codec. It overrides `"any_codec"`.
-    - **`"video_bitrate_matrix"`** (optional but requires `"supported_resolutions"` with framerates): maximum bitrate based on resolutions and framerates from `"supported_resolutions"`.
-      - ***`"CX x CY @ FPS"`*** (one per resolution): (e.g. `"1280x720@60":`) maximum bitrate for supported resolution of this service. Can be set per codec.
-        - **`"any_codec"`** (optional): bitrate for any codec.
-        - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
-    - **`"audio_bitrate"`** (optional): maximum audio bitrate. Can be set per codec.
-      - **`"any_codec"`** (optional): bitrate for any codecs.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
-  - `"recommended"` (optional): recommended settings that become the defaults when using this service.
-    - ~~`"output"`~~: removed and replaced by the `"url"` prefix or `"protocol"` in `"servers"`.
-    - `"keyint"` (optional): is now per video codec.
-      - **`"any_codec"`** (optional): keyframe interval for any codec.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) keyframe interval for this codec. It overrides `"any_codec"`.
-    - `"bframes"` (optional): is now per video codec.
-      - **`"any_codec"`** (optional): b-frames for any codec.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) b-frames for this codec. It overrides `"any_codec"`.
-    - `"profile"` (optional): is now per video codec.
-      - No `"any_codec"` because profile is surely different between codecs.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) profile for this codec if available.  It overrides `"any_codec"`.
-    - `"x264opts"`: no change.
-    - ~~`"max video bitrate"`~~: replaced.
-    - ~~`"max audio bitrate"`~~: replaced.
-    - ~~`"max fps"`~~: replaced
-    - ~~`"supported resolutions"`~~: replaced.
-    - ~~`"bitrate matrix"`~~: replaced.
-      - ~~`"res"`~~: replaced.
-      - ~~`"fps"`~~: replaced.
-      - ~~`"max bitrate"`~~: replaced.
-    - **`"fps"`** (optional): recommended framerate for this service. Unused if `"supported_resolutions"` is set with framerates.
-    - **`"video_bitrate"`** (optional): recommended video bitrate. Can be set per codec. Unused if `"video_bitrate_matrix"` is set.
-      - **`"any_codec"`** (optional): bitrate for any codec.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1"`) bitrate for this codec. It overrides `"any_codec"`.
-    - **`"video_bitrate_matrix"`** (optional but requires `"supported_resolutions"` with with framerates): recommended bitrate based on resolutions and framerates from `"supported_resolutions"`.
-      - ***`"CX x CY @ FPS"`*** (one per resolution): (e.g. `"1280x720@60":`) recommended bitrate for supported resolution of this service.
-        - **`"any_codec"`** (optional): bitrate for any codec.
-        - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) for this codec. It overrides `"any_codec"`.
-    - **`"audio_bitrate"`** (optional): maximum audio bitrate. Can be set per codec.
-      - **`"any_codec"`** (optional): bitrate for any codecs.
-      - ***`"codec name"`*** (optional, requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
-
 ##### Advantages of this format
 
 - Recommended settings are really recommended settings.
 - Recommendation and maximums are two separated thing.
 - Some settings are now per protocol or per codec, this allow multi-protocol service to be registered under only one id. This will also need to a way to know which codec is used when applying settings.
 - Name can be changed without consequences.
+
+##### Possible evolution
+Add to the service object an url that lead to an updated service object hosted by the stream service itself.
 
 ### Service ID naming scheme
 - Only lower case letter
