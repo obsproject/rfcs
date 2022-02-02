@@ -33,8 +33,20 @@ The Stream settings page and the auto-wizard will only contain a combo box listi
 
 A "common" service is a service that is shown in the default service list. To keep this attributes with the UI, a flag will be added to Service API to allow services to not be in this list, so by default third-party plugins will be shown without the need to click on the "Show all" option.
 
-Service with an VOD/archive track feature will also under a flag. So this option will only be shown if the combo service-protocol is compatible with this feature.
+Note: every service that are not common will have the flag added in first-party plugins so they will not be shown by default.
+
+The notion of maximum and recommended shall be distinguished by using them differently:
+
+1. Maximums became limits that can't be bypassed and recommendations can be disabled.
+2. Recommendations are used to set settings with the Auto-wizard and maximums can be disabled.
+3. Maximum, recommended settings will be ignorable with their respective checkboxes.
+
+Supported resolutions should be enforced by default and shall not be disabled.
+
+Service with an VOD/archive track feature will also have a flag. So this option will only be shown if the combo service-protocol is compatible with this feature.
 This feature should be considered different from a multi-track feature.
+
+*Personal note: Some thought about also adding a flag for bandwidth test mode are also on my mind.*
 
 Many elements will be moved inside properties views like:
 - Stream key field
@@ -99,9 +111,6 @@ Those services will be able to provide multiple protocols so no more "Service - 
 If a certain protocol is not available, the plugin will not register the service if the service doesn't use another protocol.
 If it does, the missing protocol will not be shown. [Thanks to RFC 45](https://github.com/tytan652/rfcs/blob/protocol_api/text/0045-protocols-in-outputs-api.md).
 
-The notion of maximum and recommended shall be distinguished.
-Maximum, supported resolutions, recommended settings will be ignorable with their respective checkboxes.
-
 Those services should have no specific behavior like ingest management.
 
 But can list with which codec they are compatible if needed. [Thanks to RFC 45](https://github.com/tytan652/rfcs/blob/protocol_api/text/0045-protocols-in-outputs-api.md)
@@ -136,21 +145,82 @@ Since the service API is in a way unusable by third-party, any breakage will onl
 ### Service integrations new flow
 
 #### How docks and CEF widget for OAuth will be created
-For the docks we could add the possibility to add them through the frontend API.
+The Front-end API needs to enable the possibility to access some `obs-browser` related feature like adding browser docks and generating widgets.
 
-Adding to the frontend API the possibility to generate the browser widget neutral on the system use (CEF). Also need to add a function asking OBS Studio is browser features are availlable.
+Note: Free functions for each structure that requires it because of a "dynamic" will be also added.
 
-OR
+##### Check availability
+- `bool obs_frontend_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
+- `bool obs_frontend_browser_initialised()` will indicate if the CEF was initialised when the function is called.
+##### Browser Widget
+Internal OAuth (like Twitch and Restream) require that the Front-end API allow to add a browser widget to show the OAuth login page.
 
-Maybe adding an API to `obs-browser` to allow plugins to create widget and docks it without using the frontend API as a bridge.
+This structure will be used to send everything needed to create this widget through the API.
+```C++
+struct obs_frontend_browser_widget {
+	/* takes QLayout */
+	void *layout;
+	const char *url;
+	bool enable_cookie;
+	DARRAY(struct obs_frontend_browser_connect) connection;
+};
+```
+- `void *layout` will contain a `QLayout` pointer which will receive the browser widget.
+- `const char *url` will contain the URL af the widget.
+- `bool enable_cookie`, if true `panel_cookie` will be set on the widget rather than a `nullptr`. This will allow to keep cookie which is required.
+- `DARRAY(struct obs_frontend_browser_connect) connection` is a array that will contain signal-slot connections that will be created on OBS Studio side.
+
+```C++
+struct obs_frontend_browser_connect {
+	const char *signal;
+	/* takes QObject */
+	void *signal_receiver;
+	const char *slot;
+};
+```
+
+`obs_frontend_add_browser_widget(struct obs_frontend_browser_widget *params)` is the fucntion that will add a browser widget to the QLayout put in the structure.
+
+##### Browser dock
+Twitch and Restream adds browser docks, so the Front-end API needs to allow this with many parameters.
+
+This structure will be used to send everything needed to create those docks through the API.
+```C++
+struct obs_frontend_browser_dock {
+	const char *id;
+	const char *title;
+	const char *url;
+	int width;
+	int height;
+	int min_width;
+	int min_height;
+	bool enable_cookie;
+	struct dstr startup_script;
+	DARRAY(char *) force_popup_url;
+};
+```
+- `const char *id`, ID of the dock.
+- `const char *title`, title of the dock.
+- `const char *url`, URL of the dock.
+- Dock default and minimum dimensions, every parameter under 80 is not used because 80 is the minimum set by OBS Studio.
+- `bool enable_cookie`, if true `panel_cookie` will be set on the dock rather than a `nullptr`. This will allow to keep cookie which is required.
+- `struct dstr startup_script` allow to set a startup script for the dock.
+- `DARRAY(char *) force_popup_url` allow to set a list of URL to force those to popup.
+
+`void * obs_frontend_add_browser_dock(struct obs_frontend_browser_dock *params)` is the function that will add those browser docks. It returns a `QDockWidget`. For now those docks or not shown by default.
+
+`void obs_frontend_remove_browser_dock(void *dock)` is the function meant to remove a browser dock. Need when disconnecting from a service. It takes QDockWidget, calls delete on dock and its corresponding QAction.
+
+##### Other functions
+`void obs_frontend_delete_browser_cookie(const char *url)` will remove cookies related to the given URL.
 
 #### How docks will be added
 
 `OBS_FRONTEND_EVENT_FINISHED_LOADING` can be used when OBS startup to enable docks.
 
 Three new front-end event will be added:
-- `OBS_FRONTEND_EVENT_SERVICE_CHANGED` emitted when the service was changed (new id).
-- `OBS_FRONTEND_EVENT_SERVICE_UPDATED` emitted when the service had a parameter updated (no id change).
+- `OBS_FRONTEND_EVENT_SERVICE_CHANGED` emitted when the service was changed (new id) like when a user switches between services.
+- `OBS_FRONTEND_EVENT_SERVICE_UPDATED` emitted when the service had a parameter updated (no id change) like when a user has changed one of the available properties/settings of the actual service.
 
 Each service integration plugin will react to at least the two first to add or remove his related docks.
 
@@ -241,12 +311,11 @@ The old actually looks like this:
       - `"max bitrate"`: maximum video bitrate.
 
 ##### Issues with this format
-- The naming scheme is a mix of object name with space and some with underscores.
 - About `"output"`, OBS consider every service as RTMP if not added and it's not a recommended settings at all. It makes OBS use the right protocol for the service. Also this prevent a service of being multi-protocol.
 - About `"recommended"`, most of the options seems to H264 related
 - `"common"`, the name makes it not understandable at the first sight maybe adding some documention would be good thing.
 
-#### New format (WIP)
+#### New format (conversion in JSON Schema with changes is in WIP)
 The new format will be parsable with a new interface library named `service-json-parser` to allow first-party plugins to read this format rather than recreating the wheel.
 
 The new format will be considered as the version 4.
@@ -281,7 +350,7 @@ Getters for those customisations are implemented in the plugin itself.
   - `"common"` (optional, false by default): this object is added in service objects of this plugin to identify which service in "common" or not. No third-party plugin should have this behavior.
 - In `obs-youtube`:
   - Servers name are translated.
-  - `"name_suffix"` in `"servers"` (optional): suffix added to the server name after being translated.
+  - `"name_suffix"` in `"servers"` (optional): suffix added to the server name after being translated. In this case "(legacy RTMP)" is the suffix added to translated server names to avoid creating more than 2 translation entries.
 
 Specific documentations about adding service in `obs-services` should be made.
 
