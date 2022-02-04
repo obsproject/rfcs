@@ -35,13 +35,13 @@ A "common" service is a service that is shown in the default service list. To ke
 
 Note: every service that are not common will have the flag added in first-party plugins so they will not be shown by default.
 
-The notion of maximum and recommended shall be distinguished by using them differently:
+- Maximums are limits and one of those 3 choices:
+  1. No option at all to bypass it
+  2. Add a secret option that shall be added in `basic.ini` to bypass it
+  3. Add a checkbox in the Advanced tab to bypass it
+- Recommended settings will not provide bitrates and will be ignore-able through a checkbox in the service property.
 
-1. Maximums became limits that can't be bypassed and recommendations can be disabled.
-2. Recommendations are used to set settings with the Auto-wizard and maximums can be disabled.
-3. Maximum, recommended settings will be ignorable with their respective checkboxes.
-
-Supported resolutions should be enforced by default and shall not be disabled.
+Supported resolutions should be enforced by default and can not be disabled.
 
 Service with an VOD/archive track feature will also have a flag. So this option will only be shown if the combo service-protocol is compatible with this feature.
 This feature should be considered different from a multi-track feature.
@@ -53,7 +53,8 @@ Many elements will be moved inside properties views like:
 - Username and password fields
 - OAuth connect disconnect button
 - Text with clickable link
-- Maximum and recommended settings label (and maybe their ignore checkboxes)
+- Maximum and recommended settings information
+- Ignore "recommended setting" checkbox
 - "Get Stream Key" button
 - "More Info" button
 
@@ -168,7 +169,7 @@ struct obs_frontend_browser_widget {
 - `void *layout` will contain a `QLayout` pointer which will receive the browser widget.
 - `const char *url` will contain the URL af the widget.
 - `bool enable_cookie`, if true `panel_cookie` will be set on the widget rather than a `nullptr`. This will allow to keep cookie which is required.
-- `DARRAY(struct obs_frontend_browser_connect) connection` is a array that will contain signal-slot connections that will be created on OBS Studio side.
+- `DARRAY(struct obs_frontend_browser_connect) connection` is a array that will contain signal-slot connections that will be created on OBS Studio side. Required to allow url changed detection.
 
 ```C++
 struct obs_frontend_browser_connect {
@@ -179,7 +180,7 @@ struct obs_frontend_browser_connect {
 };
 ```
 
-`obs_frontend_add_browser_widget(struct obs_frontend_browser_widget *params)` is the fucntion that will add a browser widget to the QLayout put in the structure.
+`obs_frontend_add_browser_widget(struct obs_frontend_browser_widget *params)` is the function that will add a browser widget to the QLayout put in the structure.
 
 ##### Browser dock
 Twitch and Restream adds browser docks, so the Front-end API needs to allow this with many parameters.
@@ -442,7 +443,7 @@ Here is a example with `obs-services` in mind:
             ],
             "supported_codecs": {
                 "video": {
-                    "any_protocol": [
+                    "*": [
                         "h264"
                     ],
                     "SRT": [
@@ -450,7 +451,7 @@ Here is a example with `obs-services` in mind:
                     ]
                 },
                 "audio": {
-                    "any_protocol": [
+                    "*": [
                         "aac"
                     ],
                     "SRT": [
@@ -458,15 +459,12 @@ Here is a example with `obs-services` in mind:
                     ]
                 }
             },
-            "supported_resolutions": {
-                "with_framerate": true,
-                "array": [
-                    "1920x1080@60",
-                    "1920x1080@30",
-                    "1280x720@60",
-                    "1280x720@30"
-                ]
-            },
+            "supported_resolutions": [
+                "1920x1080@60",
+                "1920x1080@30",
+                "1280x720@60",
+                "1280x720@30"
+            ],
             "maximums": {
                 "fps": 60,
                 "video_bitrate": {
@@ -479,27 +477,24 @@ Here is a example with `obs-services` in mind:
                 },
                 "video_bitrate_matrix": {
                     "1920x1080@60": {
-                        "any_codec": 9000,
+                        "h264": 9000,
                         "av1": 8000
                     },
                     "1920x1080@30": {
-                        "any_codec": 6000,
+                        "h264": 6000,
                         "av1": 5000
                     },
                     "1280x720@60": {
-                        "any_codec": 6000,
+                        "h264": 6000,
                         "av1": 5000
                     },
                     "1280x720@30": {
-                        "any_codec": 4000,
+                        "h264": 4000,
                         "av1": 3000
                     }
                 },
             },
             "recommended": {
-                "video": {},
-                "video_bitrate_matrix": {},
-                "audio": {},
             }
         }
     ]
