@@ -1,0 +1,45 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "OBS Services Plugin JSON Schema",
+    "type": "object",
+    "required": ["format_version", "services"],
+    "properties": {
+        "format_version": {
+            "type": "integer",
+            "const": 4
+        },
+        "services": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$comment": "Import common service object as a base, and then add new properties",
+                "$ref": "service.schema.json",
+                "required": ["id","name"],
+                "properties": {
+                    "id": {
+                        "title": "Service identifier",
+                        "description": "Human readable identifier used to register the service in OBS",
+                        "$comment": "Making it human readable is meant to allow users to use it through scripts and plugins, like service detection",
+                        "type": "string",
+                        "pattern": "^[a-z0-9_\\-]+$"
+                    },
+                    "name": {
+                        "title": "Name of the service",
+                        "description": "Name showed in the OBS when choosing a service",
+                        "type": "string"
+                    },
+                    "common": {
+                        "title": "Property reserved to OBS Project developers",
+                        "description": "If not set, this value is considered as false",
+                        "type": "boolean",
+                        "default": false,
+                        "$comment": "Set as a constant to true to avoid adding uselessly this property set to false",
+                        "const": true
+                    }
+                },
+                "unevaluatedProperties": false
+            },
+            "additionalItems": false
+        }
+    }
+}

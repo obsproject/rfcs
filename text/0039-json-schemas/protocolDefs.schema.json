@@ -1,0 +1,24 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Protocol Enum and Pattern",
+    "description": "Protocol-related enum and pattern used in OBS JSON Schemas",
+    "$comment": "Made to allow an easy way to add protocol to schemas",
+    "$defs": {
+        "protocolEnum": {
+            "description": "Enumeration of protocols",
+            "enum": ["RTMP","RTMPS","HLS","SRT","RIST","SRT","FTL"]
+        },
+        "protocolPattern": {
+            "description": "Pattern to enforce properties to named with a protocol or '*'",
+            "pattern": "^(\\*|RTMPS?|HLS|SRT|RIST|FTL)$"
+        },
+        "serverPattern": {
+            "description": "Pattern to enforce a supported server URL",
+            "pattern": "^(rtmps?|https?|srt|rist|ftl)://"
+        },
+        "requireProtocolPattern": {
+            "description": "Pattern meant to match with protocol that have a unique link prefix",
+            "pattern": "^(rtmps?|srt|rist|ftl)://"
+        }
+    }
+}

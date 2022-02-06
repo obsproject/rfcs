@@ -319,11 +319,23 @@ The old actually looks like this:
 #### New format (conversion in JSON Schema with changes is in WIP)
 The new format will be parsable with a new interface library named `service-json-parser` to allow first-party plugins to read this format rather than recreating the wheel.
 
-The new format will be considered as the version 4.
+The new format can be considered as the version 4.
 
-This format allow some specific additions parsed by getter added to the concerned plugin.
+This format will be defined by JSON Schemas (Draft 2020-12):
+- `commonPattern.schema.json`: regex pattern use multiple times
+- `protocolDefs.schema.json`: regex pattern and enum about protocols to ease protocol additions or removals in schemas
+- `service.schema.json`: define the service object itself (*still in WIP*)
+- `obs-services.schema.json`: `obs-services` JSON Schema
 
-Multi-service plugins should have a JSON root that look like this:
+Those are all present in `0039-json-schemas` folder.
+
+*Documention in schemas are in progress, and a schema for integration plugin should also be made.*
+
+JSON Schema allows to validate `services.json` (in `obs-services` case) when a PR is made against it. *Draft python script already made.*
+
+The use of JSON Schema allows to create specific additions for a specific plugin by creating a unique schema for it.
+
+<!-- Multi-service plugins should have a JSON root that look like this:
 ```json
 {
     "format_version": 4,
@@ -339,9 +351,9 @@ Service plugin like integrations one should have a JSON root that look like this
     "service": {}
 }
 ```
-`"service"` is the service object itself.
+`"service"` is the service object itself. -->
 
-##### Plugins specific additions
+<!-- ##### Plugins specific additions
 Those additions are added like extensions to the service object format.
 
 Getters for those customisations are implemented in the plugin itself.
@@ -409,7 +421,7 @@ Specific documentations about adding service in `obs-services` should be made.
       - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) for this codec. It overrides `"any_codec"`.
   - `"audio_bitrate"`<sup>O</sup>: maximum audio bitrate. Can be set per codec.
     - `"any_codec"`<sup>O</sup>: bitrate for any codecs.
-    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.
+    - *`"codec name"`*<sup>O</sup> (requires to be put in `"supported_codecs"` firstly): (e.g. `"av1":`) bitrate for this codec. It overrides `"any_codec"`.-->
 
 ##### Example
 Here is a example with `obs-services` in mind:
