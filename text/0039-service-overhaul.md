@@ -217,7 +217,10 @@ struct obs_frontend_browser_dock {
 
 #### How docks will be added
 
-`OBS_FRONTEND_EVENT_FINISHED_LOADING` can be used when OBS startup to enable docks.
+`OBS_FRONTEND_EVENT_FINISHED_LOADING` can be used when OBS startup to add docks.
+`OBS_FRONTEND_EVENT_EXIT` to unload docks that need to be removed before exit.
+`OBS_FRONTEND_EVENT_PROFILE_CHANGING` to unload dock before profile got changed.
+`OBS_FRONTEND_EVENT_PROFILE_CHANGED` to load integration from the new loaded profile.
 
 Three new front-end event will be added:
 - `OBS_FRONTEND_EVENT_SERVICE_CHANGING` emitted before the service got changed (new id) like when a user switches between services. 
@@ -226,6 +229,22 @@ Three new front-end event will be added:
 - `OBS_FRONTEND_EVENT_SERVICE_UPDATED` emitted when the service had a parameter updated (no id change) like when a user has changed one of the available properties/settings of the actual service.
 
 Each service integration plugin will react to at least the two first to add or remove his related docks.
+
+#### How docks will keep their state between session and profile
+Actually the dock state is global in the config, but with docks that appear depending on the service which is per profile which is still the case with "old" integrations.
+
+This which can lead to dock state losses between profile switching and exiting. The "old" integration actually store a dock state in the profile config and restore it after being the integration loaded is loaded.
+
+But making restoring a dock state from a plugin should be the last resort.
+Making it per profile could avoid this.
+
+Integrations docks will be added after specific frontend event.
+So after each of them the dock state needs to be restored.
+
+`OBS_FRONTEND_EVENT_FINISHING_LOADING` (finishing not finished) needs to be created
+to allow adding docks and restore dock state before `OBS_FRONTEND_EVENT_FINISHED_LOADING` is emitted.
+
+Like this `OBS_FRONTEND_EVENT_FINISHED_LOADING` keep his meaning and does not get a restore dock state after it.
 
 #### Manage Broadcast
 YouTube is not the only service that could have or need a "Manage Broadcast" button. So adding a way to make other service plugin able to use it.
@@ -536,5 +555,6 @@ Add to the service object an url that lead to an updated service object hosted b
 Some services could support a protocol without supporting all the compatible codecs, so adding a new field like `supported_codecs` for audio and video may be needed.
 
 # Drawbacks
+Dockstate from integration are not recoverable.
 
 # Additional Information
