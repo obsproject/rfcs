@@ -220,7 +220,9 @@ struct obs_frontend_browser_dock {
 `OBS_FRONTEND_EVENT_FINISHED_LOADING` can be used when OBS startup to enable docks.
 
 Three new front-end event will be added:
+- `OBS_FRONTEND_EVENT_SERVICE_CHANGING` emitted before the service got changed (new id) like when a user switches between services. 
 - `OBS_FRONTEND_EVENT_SERVICE_CHANGED` emitted when the service was changed (new id) like when a user switches between services.
+- `OBS_FRONTEND_EVENT_SERVICE_UPDATING` emitted before the service got a parameter updated (no id change) like when a user has changed one of the available properties/settings of the actual service.
 - `OBS_FRONTEND_EVENT_SERVICE_UPDATED` emitted when the service had a parameter updated (no id change) like when a user has changed one of the available properties/settings of the actual service.
 
 Each service integration plugin will react to at least the two first to add or remove his related docks.
