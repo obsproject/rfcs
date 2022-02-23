@@ -1,12 +1,17 @@
 # Summary
-* create new plugin type "control"
-* Reimplement hotkeys as a control plugin
+* Remove completely the current "hotkeys" implementation
+* Creation of a new "Controls" menu in settings
+* Creation of two new plugin types "Triggers" and "Actions"
+* Creation of a default Action Plugin "OBS"
+* Creation of a default Trigger Plugin "Hotkeys"
+* Creation of a default Trigger plugin "OBS"
+* (optional) Creation of a default Action plugin "Macros"
 
 
 # Motivation
-While currently we have the ability to control obs through plugins, There is no unified structure that allows for those controls to be accessed in one location, or to communicate with eachother.
+Currently we have the ability to control obs through plugins, There is no unified structure that allows for those controls to be accessed in one location, or to communicate with each other.
 
-This RFC is in regards to building a framework to allow for multiple control modules (eg. Hotkeys, Midi, OSC, Sound Board, Joystick, etc.) 
+This RFC is in regards to building a framework to allow for multiple Triggers (eg. Hotkeys, Midi, OSC, Xinput, etc.) to fire off arbitrary actions (OBS, MIDI, OSC, Force Feedback)
 
 # Detailed Changes
 
@@ -16,68 +21,60 @@ Several changes need to be made to support this new feature, including UI, plugi
 1. Replace hotkeys in the settings window with a controls page
 2. Create a plugin type that allows for tabs to be added to the controls page
 2. Reimplement the hotkeys functions as an input type control plugin
-4. Create a generic control message type that can be passed between each plugin, probably similar to the frontend callback type
-3. Create a Control manager that handles saving and loading IO mappings 
+4. Create a generic control message that can is sent to the mapped action when a Trigger is called
+3. Create a Control manager that handles 
+   * Saving and loading Trigger/Action mappings
+   * Message passing between Triggers and Actions
 
 ## Plugin type specifics
-The control plugin type needs to be able to 
-* Handle both input and output control plugins
-* Be able to enable and disable plugins via an enabled checkbox  or enable/Disable button in the new ui page
+### Both 
+The control plugin type needs to have the following features, 
+
+* Define whether it is a Trigger Plugin, or an Action Plugin
+* A QtWidget to add a configuration page as a dropdown to the Control Menu if needed for the protocol
+* Add A custom UI to the "mapping page" when the plugin is selected in the QComboBox
 
 
-### Input Type control plugins
+### Trigger Plugins
 
-The input type plugin is used to implement receiving inputs into obs and mapping them to an "output type" plugin
-it needs to be able to 
-* Create a new item to the list widget on the new "controls page"
-* Add it's custom UI to a mutable layout below the list widget the "mapping page"
+A Trigger plugin is used to receive an input or event and send a message to the Control Manager
 
-* Actual control of obs is already possible using existing methodologies. 
-### Output Type control plugins
-The output type plugin is used to send events from obs, or an "input type" plugin.
-Output type plugins get added to a QComboBox within the "input type/mapping page"
+### Action Plugins
+An Action Plugin, is used to carry out an action, whether that is to switch a scene in obs, or Provide MIDI feedback 
 
 
+## Potential plugins that could use this system
 
-## Example plugin types
-### Input
-
+### > Trigger
 * Hotkeys
-* MIDI*
+* MIDI
 * OSC
 * Joystick
-* MQTT
-* (possibly) WebSockets*
-* (possibly) Macros
-* OBS -- onObsFrontendChange -- Gives us a graphical way to map obs events to outputs
-### Output
-* Midi* 
+* MQTT 
+* OBS Events
+### > Action
+* Midi
 * OSC
-* MQTT
-* (possibly) WebSockets*
-* (possibly) Macros**
-*Websockets and MIDI already exist with the obs-websockets and obs-midi plugins
-**Macro support is a future idea, but would allow for creation of multiple action outputs as an output plugin, it is included in the input section as it would be another entry in the list widget
+* MQTT 
+* Macros
+
 # UI 
 A rough idea of a possible ui
-## Hotkeys
-![new Hotkeys tab](https://github.com/cpyarger/rfcs/blob/master/text/basic%20settings%20idea.png?raw=true)
 
+## Control Menu
+
+![new Hotkeys tab](https://github.com/cpyarger/rfcs/blob/master/text/basic%20settings%20idea.png?raw=true)
 ## MIDI
 ### Midi Device Tab
 ![new midi device tab](https://github.com/cpyarger/rfcs/blob/master/text/midi%20tabs.png?raw=true)
+
 ### Midi Mapping Page
 ![new midi mapping page](https://github.com/cpyarger/rfcs/blob/master/text/midi%20mapping.png?raw=true)
 
 
 
 
-# Drawbacks
+# Potential Drawbacks
 
 * Improperly implemented controls can cause control feedback loops
 * Possible slowdowns if a large number of calls happen very fast (a few hundred or thousand / second)
-** I have not yet noticed this with the obs-midi plugin even when doing testing for it (moving multiple volume faders as fast as possible)
-
-# Additional Information
-I would like to see the [UI: Redesign hotkeys interface #2133](https://github.com/obsproject/obs-studio/pull/2133) as the new hotkeys ui within the control module
-I have been working on the [OBS-Midi](https://github.com/Alzy/obs-midi) plugin with Alzy 
