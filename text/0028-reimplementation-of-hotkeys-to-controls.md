@@ -42,6 +42,31 @@ A Trigger plugin is used to receive an input or event and send a message to the 
 ### Action Plugins
 An Action Plugin, is used to carry out an action, whether that is to switch a scene in obs, or Provide MIDI feedback 
 
+### Code for Registering GUI of plugins
+![new midi mapping page](https://github.com/cpyarger/rfcs/blob/master/text/QtWidget%20code.png?raw=true)
+
+# UI 
+A rough idea of a possible ui
+
+## Control Menu
+
+![new Hotkeys tab](https://github.com/cpyarger/rfcs/blob/master/text/control-mapping.png?raw=true)
+## MIDI
+### Example Midi Widgets
+![new midi device tab](https://github.com/cpyarger/rfcs/blob/master/text/example%20midi%20widgets.png?raw=true)
+
+
+
+
+
+
+
+# Potential Drawbacks
+
+* Improperly implemented controls can cause control feedback loops
+* Possible slowdowns if a large number of calls happen very fast (a few hundred or thousand / second)
+
+# Additional Information
 
 ## Potential plugins that could use this system
 
@@ -57,24 +82,3 @@ An Action Plugin, is used to carry out an action, whether that is to switch a sc
 * OSC
 * MQTT 
 * Macros
-
-# UI 
-A rough idea of a possible ui
-
-## Control Menu
-
-![new Hotkeys tab](https://github.com/cpyarger/rfcs/blob/master/text/basic%20settings%20idea.png?raw=true)
-## MIDI
-### Midi Device Tab
-![new midi device tab](https://github.com/cpyarger/rfcs/blob/master/text/midi%20tabs.png?raw=true)
-
-### Midi Mapping Page
-![new midi mapping page](https://github.com/cpyarger/rfcs/blob/master/text/midi%20mapping.png?raw=true)
-
-
-
-
-# Potential Drawbacks
-
-* Improperly implemented controls can cause control feedback loops
-* Possible slowdowns if a large number of calls happen very fast (a few hundred or thousand / second)
