@@ -78,4 +78,4 @@ Plugins offering similar functionality:
 * [OBS Virtualcam](https://obsproject.com/forum/resources/obs-virtualcam.949/) and [Virtual Cam Filter](https://obsproject.com/forum/resources/virtual-cam-filter.1142/)
 
 Implementation:
-* I have a locally working version of the proposed changes, including a hacky PoC of using a non-default source for the virtual camera. I'll add a link here once I open up a PR.
+* [PR](https://github.com/obsproject/obs-studio/pull/6577) showing proposed implementation, tested locally by forcing a non-default source for the virtual camera.
