@@ -39,13 +39,16 @@ While this proposal focuses primarily on the `libobs` refactor required to enabl
 
 ## Simple Output Mode
 
-An additional "Virtual Camera" `GroupBox` could be added to the Output settings when in Simple mode to select the camera source. It would default to "Same as stream" but could be overridden to select any other source. If an override was configured, this source could be set to a static channel >6 which the virtual camera could use when starting.
+![Simple](0049-multiple-video-mixes/output-simple.png)
 
-Source selection could be limited to only Video Capture sources in Simple mode in order to streamline the configuration for the most common use-cases.
+
+An additional "Virtual Camera" `GroupBox` could be added to the Output settings when in Simple mode to select the camera source. It would default to "Same as stream" but could be overridden to select any other source. If an override was configured, this source could be set to a static channel >6 which the virtual camera could use when starting.
 
 Configuring ISO recording is likely beyond the scope of what makes sense to include in the Simple configuration mode.
 
 ## Advanced Output Mode
+
+![Advanced](0049-multiple-video-mixes/output-advanced.png)
 
 A new "Video" tab could be added to the Output settings when in Advanced mode. This would function similarly to the existing "Audio" tab where users could configure scenes/sources for each of N video tracks. Additionally, the virtual camera source selection would be shown here while in Advanced mode. This part of the configuration would simply map sources to channels very much like how the Advanced Audio Properties dialog enables mapping audio sources to different tracks. The only difference being that video tracks don't mix multiple sources directly, a scene must be used to setup this mixing separately if desired.
 
