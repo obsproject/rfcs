@@ -150,67 +150,35 @@ The Front-end API needs to enable the possibility to access some `obs-browser` r
 
 Note: Free functions for each structure that requires it because of a "dynamic" will be also added.
 
-##### Check availability
-- `bool obs_frontend_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
-- `bool obs_frontend_browser_initialised()` will indicate if the CEF was initialised when the function is called.
-##### Browser Widget
-Internal OAuth (like Twitch and Restream) require that the Front-end API allow to add a browser widget to show the OAuth login page.
-
-This structure will be used to send everything needed to create this widget through the API.
-```C++
-struct obs_frontend_browser_widget {
-	/* takes QLayout */
-	void *layout;
-	const char *url;
-	bool enable_cookie;
-	DARRAY(struct obs_frontend_browser_connect) connection;
-};
-```
-- `void *layout` will contain a `QLayout` pointer which will receive the browser widget.
-- `const char *url` will contain the URL af the widget.
-- `bool enable_cookie`, if true `panel_cookie` will be set on the widget rather than a `nullptr`. This will allow to keep cookie which is required.
-- `DARRAY(struct obs_frontend_browser_connect) connection` is a array that will contain signal-slot connections that will be created on OBS Studio side. Required to allow url changed detection.
+`bool obs_frontend_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
+`bool obs_frontend_browser_initialised()` will indicate if the CEF was initialised when the function is called required for OAuth through CEF.
 
 ```C++
 struct obs_frontend_browser_connect {
-	const char *signal;
-	/* takes QObject */
-	void *signal_receiver;
-	const char *slot;
+	void *qobject; // QObject
+	const char *slot; // SLOT()
 };
-```
 
-`obs_frontend_add_browser_widget(struct obs_frontend_browser_widget *params)` is the function that will add a browser widget to the QLayout put in the structure.
-
-##### Browser dock
-Twitch and Restream adds browser docks, so the Front-end API needs to allow this with many parameters.
-
-This structure will be used to send everything needed to create those docks through the API.
-```C++
-struct obs_frontend_browser_dock {
-	const char *id;
-	const char *title;
+struct obs_frontend_browser_params {
 	const char *url;
-	int width;
-	int height;
-	int min_width;
-	int min_height;
 	bool enable_cookie;
 	struct dstr startup_script;
 	DARRAY(char *) force_popup_url;
+    DARRAY(struct obs_frontend_browser_connect) title_changed;
+    DARRAY(struct obs_frontend_browser_connect) url_changed;
 };
 ```
-- `const char *id`, ID of the dock.
-- `const char *title`, title of the dock.
+
 - `const char *url`, URL of the dock.
-- Dock default and minimum dimensions, every parameter under 80 is not used because 80 is the minimum set by OBS Studio.
 - `bool enable_cookie`, if true `panel_cookie` will be set on the dock rather than a `nullptr`. This will allow to keep cookie which is required.
 - `struct dstr startup_script` allow to set a startup script for the dock.
 - `DARRAY(char *) force_popup_url` allow to set a list of URL to force those to popup.
+- `DARRAY(struct obs_frontend_browser_connect) title_changed` allow to connect QCefWidget `titleChanged()` signal to a slot
+- `DARRAY(struct obs_frontend_browser_connect) url_changed` allow to connect QCefWidget `urlChanged()` signal to a slot
 
-`void * obs_frontend_add_browser_dock(struct obs_frontend_browser_dock *params)` is the function that will add those browser docks. It returns a `QDockWidget`. For now those docks or not shown by default.
+`bool obs_frontend_add_browser_dock(const char *id, struct obs_frontend_browser_dock *params)` is the function that will add those browser docks to the UI.
 
-`void obs_frontend_remove_browser_dock(void *dock)` is the function meant to remove a browser dock. Need when disconnecting from a service. It takes QDockWidget, calls delete on dock and its corresponding QAction.
+`void *obs_frontend_create_browser_widget(struct obs_frontend_browser_params *params)` is the function that will return a browser widget (QCefWidget) that we can cast to a QWidget for OAuth or a custom chat dock (e.g. Youtube).
 
 ##### Other functions
 `void obs_frontend_delete_browser_cookie(const char *url)` will remove cookies related to the given URL.
