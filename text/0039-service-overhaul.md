@@ -1,5 +1,3 @@
-***This RFC is dependent on [RFC 45](https://github.com/tytan652/rfcs/blob/protocol_api/text/0045-protocols-in-outputs-api.md).***
-
 # Summary
 
 - Make OBS able to accept third-party service plugins
@@ -15,7 +13,7 @@ Before in OBS, in the Stream settings page, there was a combobox with two choice
 - Streaming Services
 - Custom Streaming Server
 
-Each one had his own property view because those two are the two actual registered official services.
+Each one had his own property view because those two are the two actual registered first-party services.
 This behavior could enable third-party service plugin to exist.
 
 Nowadays in OBS, this page show the list of services with many new elements showed of hidden depending of the selection (like recommended settings). With also Twitch and Restream OAuth integrations. And no use of the property views provided by `rtmp-services`.
@@ -24,7 +22,7 @@ We need to restore the usage of property views and the possibility to create and
 
 It will also provide the ability for some stream services to be able to made their own plugin.
 
-*Since using the service API was not possible with the actual OBS, any breaking change in it (if there are) will not impact any plugin for OBS.*
+*Since using the Service API was not possible with the actual OBS, any breaking change in it (if there are) should not impact any plugin for OBS.*
 
 # Design
 
@@ -523,6 +521,5 @@ Add to the service object an url that lead to an updated service object hosted b
 Some services could support a protocol without supporting all the compatible codecs, so adding a new field like `supported_codecs` for audio and video may be needed.
 
 # Drawbacks
-Dockstate from integration are not recoverable.
 
 # Additional Information
