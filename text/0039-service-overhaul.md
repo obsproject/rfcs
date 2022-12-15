@@ -48,29 +48,6 @@ Maximums and supported resolutions will be strict (e.g. Twitch allows 6000 kbps,
 
 TODO: Think about recommendation
 
-### Audio track(s)
-
-The service needs to be able to report how it support audio tracks:
-- Only one track
-- Two with a archve track (VOD Track)
-- Multi-track
-
-TODO IDEA: Enum with one track, archive track (VOD track) and multi-track (only custom service) since protocol makes usage of flags complicated.
-
-### Rate control
-
-Services by default will ask for only CBR, some service may want something else or allow various.
-
-Both service and encoder will need to be able to expose this to allow the UI to check for compatibility.
-
-The UI will not allow to save incompatible settings.
-
-### Color format/space/range
-
-Aside from RTMP(S) (and FTL), newer protocol allow codecs that support 10-bit format and HDR.
-
-The UI will need to not allow service that do not work with selected settings.
-
 ## Service plugins
 ### Service API
 
@@ -206,6 +183,9 @@ YouTube is not the only service that could have or need a "Manage Broadcast" but
 - Add a callback setter in the frontend-api which will make the button show up. This setter will always override the previous callback.
 - Add a callback unsetter in the frontend-api which will make the button hide. This unsetter will have the callback as a parameter to check if the set callback should really be unset.
 
+
+#### Twitch VOD track
+This will be the **only one** custom feature that will be allowed in OBS Studio UI code.
 
 ## Service JSON
 
