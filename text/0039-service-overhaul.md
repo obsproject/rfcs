@@ -38,7 +38,7 @@ Advanced network settings will also be replace by protocol output properties vie
 
 Spoiler: Streaming services will be individually registered, so no more `rtmp-common` that represent various services.
 
-So to hide services behind the "Show All" option, a flag (`OBS_SERVICE_UNCOMMON`) will be added to the Service API to indicate that the service is "uncommon".
+So to hide services behind the "Show All" option, a flag meant for first-party services (`OBS_SERVICE_UNCOMMON`) will be added to the Service API to indicate that the service is "uncommon".
 
 So third-party services are shown in the list by default.
 
