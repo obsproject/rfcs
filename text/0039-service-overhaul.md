@@ -3,18 +3,17 @@
 - Make OBS able to accept third-party service plugins
 - Register services with a unique id rather than a common one
 - A service can be provided with multiple protocols
-- Stricter application of maximums and format compatibility (rate control, color format/space/range)
 - Separate Twitch, Restream and YouTube integration and make them plugins
 
 # Motivation
 
 Actually even if OBS has the Service API, developer can't create third-party service plugin because there is no mechanism to use them at all.
 
-Before OBS in the Stream settings page, property views were used for services but with only two registered serices `rtmp-common` which containe all services and `rtmp-custom` for custom servers.
+Before OBS in the Stream settings page, property views were used for services but with only two registered services `rtmp_common` which contain all services and `rtmp_custom` for custom servers.
 
 Nowadays in OBS, this page show the list of services with many new elements showed of hidden depending of the selection (like recommended settings). With also Twitch and Restream OAuth integrations. And no use of the property views provided by `rtmp-services`.
 
-This need to be refactored to re-introduce property for the service and for the protocol output.
+This need to be refactored to re-introduce property views for the service and for the protocol output.
 
 This will also provide the ability for some stream services to be able to made their own plugin.
 
@@ -36,9 +35,9 @@ Advanced network settings will also be replace by protocol output properties vie
 
 ### Common, uncommon
 
-Spoiler: Streaming services will be individually registered, so no more `rtmp-common` that represent various services.
+Spoiler: Streaming services will be individually registered, so no more `rtmp_common` that represent various services.
 
-So to hide services behind the "Show All" option, a flag meant for first-party services (`OBS_SERVICE_UNCOMMON`) will be added to the Service API to indicate that the service is "uncommon".
+So to hide services behind the "Show All" option, a flag (`OBS_SERVICE_UNCOMMON`) meant for "first-party" services marked as "uncommon" will be added to the Service API to indicate that the service is "uncommon".
 
 So third-party services are shown in the list by default.
 
@@ -46,31 +45,35 @@ So third-party services are shown in the list by default.
 
 Maximums and supported resolutions will be strict (e.g. Twitch allows 6000 kbps, more will not be accepted), the UI will not allow to save incompatible settings.
 
+This will require to introduce in the Property API a way to indicate that the settings are not valid.
+
 TODO: Think about recommendation
 
 ## Service plugins
 ### Service API
 
-Add missing get_properties2 and get_default2 functions for service
+Adding missing `get_properties2()` and `get_default2()` functions for service might be required.
+
+**For now all services shall be compatible with H264. Removing this limitation requires to rework of the Output settings UI which is plan for another RFC.**
 
 ### `custom-service`
 
 This plugin is meant to provide a replacement for `rtmp_custom` type.
 
-If OBS need to be heavily dependent to one plugin, it shall be this one.
+If OBS need to be heavily dependent to one service plugin, it shall be this one.
 
 The protocol will be detected (or maybe forced set by the user, e.g. HLS).
-Properties will change depending of the protocol.
+Property view will change depending of the protocol.
 
 ### `obs-services`
 
 This plugin is meant to provide a replacements for `rtmp_common` type for services who doesn't have custom behavior or integration.
 
-This plugin will need a brand new services.json with new format, to register each streaming service with their own id. No more things like `rtmp-common` id.
+This plugin will need a brand new services.json with new format, to register each streaming service with their own id. No more things like `rtmp_common` id.
  
 Those services will be able to provide multiple protocols so no more "Service - HLS" and "Service - FTL".
 
-If a certain protocol is not available, the UI will not show it if the service doesn't support another protocol.
+If a certain protocol is not available, the UI will not show it if the service doesn't support another protocol. Same goes for codecs.
 If it does, the missing protocol will not be shown.
 
 Those services should have no specific behavior like ingest management.
@@ -82,7 +85,7 @@ Only improvements will be accepted in the code of this plugin.
 - Only lower case letter
 - All prefixed by `obs-` in code, to avoid potential id conflict with streaming service third-party plugins.
 - Hyphen `-` are only used to distinguish two service providing the same stream service but with noteworthy differences like NicoNico (free & premium).
-- Like this if the service needs a specific behavior, you can 'transfer' it from `obs-services` to a new first-party plugin and keep the same id. The change will be seamless for the user.
+- Like this if the service needs a specific behavior, you can 'transfer' it from `obs-services` to a new first-party plugin and keep the same id. The change will be seamless for the user if done properly.
 
 ### Special case plugins
 
@@ -90,12 +93,14 @@ This/Those plugin(s) is/are meant to provide replacements for `rtmp_common` type
 
 This/Those plugin(s) is/are meant to have implemented and register services which need a specific behavior like custom ingest with a unique id for each one.
 
+**TODO: Write about maintenance**
+
 ### Conversion (WIP Needs a re-work)
 
 **Downgrade will break service configuration**
 A JSON or a harcoded list with old service name linked to their new id, to make OBS able to convert the `service.json` to a new one.
 
-Auth integration config inside `basic.ini` will be also transfered to the new file.
+Auth integration config inside `basic.ini` will be also transfered under a new section if in service settings.
 
 ### Integrations
 
@@ -109,43 +114,54 @@ If OBS is built without client ids and hashes, those plugins will be built witho
 
 Actually the dock state is global in the config, but with docks that appear depending on the service which is per profile which is still "also" the case with "old" integrations.
 
-This which can lead to dock state losses between profile switching and exiting. The "old" integration actually store a dock state in the profile config and restore it after being the integration loaded is loaded.
+This can lead to dock state losses between profile switching and exiting. The "old" integration actually store a dock state in the profile config and restore it after the integration is is loaded.
 
-But making restoring a dock state from a plugin should be the last resort.
+But making restoring a dock state from a plugin should should not be considered at all.
 Making it per profile could avoid this.
 
 Integrations docks will be added after specific frontend event.
 So after each of them the dock state needs to be restored.
 
-`OBS_FRONTEND_EVENT_FINISHING_LOADING` (finishing not finished) needs to be created
-to allow adding docks and restore dock state before `OBS_FRONTEND_EVENT_FINISHED_LOADING` is emitted.
+- `OBS_FRONTEND_EVENT_FINISHING_LOADING` (finish**ing** not finished) needs to be created to allow adding docks. And restore dock state before if docks are indeed added before `OBS_FRONTEND_EVENT_FINISHED_LOADING` is emitted.
 
-Like this `OBS_FRONTEND_EVENT_FINISHED_LOADING` keep his meaning and does not get a restore dock state after it.
+- `OBS_FRONTEND_EVENT_PROFILE_CHANGED`, profile dock state will be loaded after a profile is changes.
 
-#### Dock addition
+Also they will be removed after specific frontend event.
+So before each of them the dock state needs to be saved.
 
-Integration plugins will need events to be able to add and remove service at the right moment.
+- `OBS_FRONTEND_EVENT_PROFILE_CHANGING`, profile dock state will be saved before a profile is changes.
 
-`OBS_FRONTEND_EVENT_FINISHING_LOADING` can be used when OBS startup to add docks.
-`OBS_FRONTEND_EVENT_EXIT` to unload docks that need to be removed before exit.
-`OBS_FRONTEND_EVENT_PROFILE_CHANGING` to unload dock before profile got changed.
-`OBS_FRONTEND_EVENT_PROFILE_CHANGED` to load integration from the new loaded profile.
+- `OBS_FRONTEND_EVENT_EXIT`, profile dock state will be saved before while OBS is exiting.
 
-Three new front-end event will be added (**Needs re-work for future multi-stream RFC**):
-- `OBS_FRONTEND_EVENT_SERVICE_CHANGING` emitted before the service got changed (new id) like when a user switches between services. 
-- `OBS_FRONTEND_EVENT_SERVICE_CHANGED` emitted when the service was changed (new id) like when a user switches between services.
-- `OBS_FRONTEND_EVENT_SERVICE_UPDATING` emitted before the service got a parameter updated (no id change) like when a user has changed one of the available properties/settings of the actual service.
-- `OBS_FRONTEND_EVENT_SERVICE_UPDATED` emitted when the service had a parameter updated (no id change) like when a user has changed one of the available properties/settings of the actual service.
+#### Dock addition (**The concept needs to be tested**)
 
-Each service integration plugin will react to at least the two first to add or remove his related docks.
+Integration plugins will need events/signals to be able to add and remove their docks at the right moment.
+
+
+3 signals will be added to Core OBS signaling:
+
+- "service_create (ptr service)"
+- "service_update (ptr service)"
+- "service_destroy (ptr service)"
+
+A variant of `obs_service_create()` to spawn signal-less (and maybe even private) service will be needed to allow protocol checking in settings.
+
+The plugin will have to store if `OBS_FRONTEND_EVENT_FINISHED_LOADING` was passed or not.
+
+If created before `OBS_FRONTEND_EVENT_FINISHED_LOADING`, a front-event callback will be added to react to `OBS_FRONTEND_EVENT_FINISHING_LOADING` to add docks (if integration connected) and then removed itself.
+
+When created/updated (after `OBS_FRONTEND_EVENT_FINISHED_LOADING`) the service will add the docks (if integration connected).
+
+When `OBS_FRONTEND_EVENT_PROFILE_CHANGING` `OBS_FRONTEND_EVENT_EXIT` or the service is destroyed, docks will be removed (if integration connected).
 
 #### Browser features
 The Front-end API needs to enable the possibility to access some `obs-browser` related feature like adding browser docks and generating widgets.
 
-Note: Free functions for each structure that requires it because of a "dynamic" will be also added.
+Note: Free functions for each structure that requires it because of a "dynamic" type will be also added.
 
 `bool obs_frontend_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
-`bool obs_frontend_browser_initialised()` will indicate if the CEF was initialised when the function is called required for OAuth through CEF.
+
+CEF should be initialised after `OBS_FRONTEND_EVENT_FINISHED_LOADING`.
 
 ```C++
 struct obs_frontend_browser_connect {
@@ -158,8 +174,8 @@ struct obs_frontend_browser_params {
 	bool enable_cookie;
 	struct dstr startup_script;
 	DARRAY(char *) force_popup_url;
-    DARRAY(struct obs_frontend_browser_connect) title_changed;
-    DARRAY(struct obs_frontend_browser_connect) url_changed;
+        DARRAY(struct obs_frontend_browser_connect) title_changed;
+        DARRAY(struct obs_frontend_browser_connect) url_changed;
 };
 ```
 
@@ -170,7 +186,7 @@ struct obs_frontend_browser_params {
 - `DARRAY(struct obs_frontend_browser_connect) title_changed` allow to connect QCefWidget `titleChanged()` signal to a slot
 - `DARRAY(struct obs_frontend_browser_connect) url_changed` allow to connect QCefWidget `urlChanged()` signal to a slot
 
-`bool obs_frontend_add_browser_dock(const char *id, struct obs_frontend_browser_dock *params)` is the function that will add those browser docks to the UI.
+`bool obs_frontend_add_browser_dock(const char *id, const char *title, struct obs_frontend_browser_dock *params)` is the function that will add those browser docks to the UI.
 
 `void *obs_frontend_create_browser_widget(struct obs_frontend_browser_params *params)` is the function that will return a browser widget (QCefWidget) that we can cast to a QWidget for OAuth or a custom chat dock (e.g. Youtube).
 
@@ -179,9 +195,9 @@ struct obs_frontend_browser_params {
 #### Broadcast flow (WIP)
 YouTube is not the only service that could have or need a "Manage Broadcast" button. So adding a way to make other service plugin able to use it.
 
-- Add a unique callback meant to be called when the "Manage Broadcast" button is clicked.
-- Add a callback setter in the frontend-api which will make the button show up. This setter will always override the previous callback.
-- Add a callback unsetter in the frontend-api which will make the button hide. This unsetter will have the callback as a parameter to check if the set callback should really be unset.
+- Add a callback bond to a service pointer meant to be called when the "Manage Broadcast" button is clicked.
+- Add a callback setter in the frontend-api which will make the button show up.
+- Add a callback unsetter in the frontend-api which disable the button.
 
 
 #### Twitch VOD track
