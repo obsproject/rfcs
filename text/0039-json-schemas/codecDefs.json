@@ -1,0 +1,54 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://obsproject.com/schemas/codecDefs.json",
+    "title": "Codec Enums, Patterns and Properties",
+    "description": "Codec-related enums, patterns and properties used in OBS JSON Schemas",
+    "$comment": "Made to allow an easy way to add codec to schemas",
+    "$defs": {
+        "videoCodecEnum": {
+            "$comment": "Enumeration of video codecs",
+            "enum": ["h264","hevc","av1"]
+        },
+        "audioCodecEnum": {
+            "$comment": "Enumeration of audio codecs",
+            "enum": ["aac","opus"]
+        },
+        "codecProperties": {
+            "$comment": "Per-codec properties meant for obs-services schema",
+            "type": "object",
+            "properties": {
+                "h264":
+                {
+                    "type": "object",
+                    "title": "H264 Settings",
+                    "description": "Properties related to the H264 codec",
+                    "properties": {
+                        "profile": {
+                            "type": "string",
+                            "title": "Profile",
+                            "enum": [ "baseline", "main", "high" ]
+                        },
+                        "keyint": {
+                            "type": "integer",
+                            "title": "Keyframe Interval (seconds)",
+                            "minimum": 0
+                        },
+                        "bframes":
+                        {
+                            "type": "integer",
+                            "title": "B-Frames",
+                            "minimum": 0
+                        }
+                    },
+                    "minProperties": 1
+                },
+                "obs_x264": {
+                    "type": "string",
+                    "title": "x264 Encoder Options",
+                    "description": "Options meant for the x264 encoder implementation with the id 'obs_x264'",
+                    "minLength": 1
+                }
+            }
+        }
+    }
+}

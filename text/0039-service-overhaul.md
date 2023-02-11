@@ -289,111 +289,21 @@ The old actually looks like this:
 
 ### New format (WIP)
 
-The new format will rely on a more strict JSON schemas.
+The new format will rely on more strict JSON schemas.
 
 Those JSON Schemas (Draft 2020-12) will be:
-- `commonPattern.schema.json`: regex pattern use multiple times
-- `protocolDefs.schema.json`: regex pattern and enum about protocols to ease protocol additions or removals in schemas
-- `service.schema.json`: define the service object itself (*still in WIP*)
-- `obs-services.schema.json`: `obs-services` JSON Schema
+- `protocolDefs.json`: enums, regex patterns and properties related to protocols to ease protocol additions or removals in schemas
+- `codecDefs.json`: enums, regex patterns and properties related to codecs to ease codec additions or removals in schemas
+- `service.json`: define the service object itself, will be used for every service plugin htat needs a JSON
+- `obs-services.json`: `obs-services` JSON Schema
 
-Those are all present in `0039-json-schemas` folder.
+Those are all present in `0039-json-schemas` folder with an example of `obs-services` JSON.
 
 *Documention in schemas are in progress, and a schema for integration plugin should also be made.*
 
 JSON Schema allows to validate `services.json` (in `obs-services` case) when a PR is made against it.
 
 The use of JSON Schema allows to create specific additions for a specific plugin by creating a unique schema for it.
-
-#### Example
-Here is a example with `obs-services` in mind:
-```json
-{
-    "format_version": 4,
-    "services": [
-        {
-            "id": "example",
-            "name": "Example of stream services",
-            "more_info_link": "https://example.com/more_info",
-            "stream_key_link": "https://example.com/stream_key",
-            "servers": [
-                {
-                    "name": "SRT Server",
-                    "url": "srt://example.com"
-                },
-                {
-                    "name": "RTMPS Server",
-                    "url": "rtmps://example.com/server"
-                },
-                {
-                    "name": "FTL Server",
-                    "url": "ftl://example.com/"
-                },
-                {
-                    "name": "HLS Server",
-                    "protocol": "HLS",
-                    "url": "https://example.com/http_upload_hls?cid={stream_key}&copy=0&file=out.m3u8"
-                }
-            ],
-            "supported_codecs": {
-                "video": {
-                    "*": [
-                        "h264"
-                    ],
-                    "SRT": [
-                        "av1"
-                    ]
-                },
-                "audio": {
-                    "*": [
-                        "aac"
-                    ],
-                    "SRT": [
-                        "opus"
-                    ]
-                }
-            },
-            "supported_resolutions": [
-                "1920x1080@60",
-                "1920x1080@30",
-                "1280x720@60",
-                "1280x720@30"
-            ],
-            "maximums": {
-                "fps": 60,
-                "video_bitrate": {
-                    "any_codec": 9000,
-                    "av1": 8000,
-                },
-                "audio_bitrate": {
-                    "any_codec": 320,
-                    "opus": 640,
-                },
-                "video_bitrate_matrix": {
-                    "1920x1080@60": {
-                        "h264": 9000,
-                        "av1": 8000
-                    },
-                    "1920x1080@30": {
-                        "h264": 6000,
-                        "av1": 5000
-                    },
-                    "1280x720@60": {
-                        "h264": 6000,
-                        "av1": 5000
-                    },
-                    "1280x720@30": {
-                        "h264": 4000,
-                        "av1": 3000
-                    }
-                },
-            },
-            "recommended": {
-            }
-        }
-    ]
-}
-```
 
 #### Advantages of this format
 
