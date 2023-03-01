@@ -341,6 +341,20 @@ flowchart LR
     scenecol-- "3. OBSSignal" -->control
 ```
 
+### "*OBS Frontend API*" and MVC (WIP)
+
+The OBS Frontend API worst defect is that it exposes private objects pointers (main window, systray).
+
+Note: Drop = "Deprecation and then drop (no replacement)"
+
+- Drop obs_frontend_get_main_window
+- Drop obs_frontend_get_main_window_handle
+- Drop obs_frontend_get_system_tray
+- Drop custom QDockWidget related function
+- Create functions to replace dropped functions usecases without directly exposing the main window pointer/handle same for the systray
+
+Potentially split the API in two APIs (controller and view)
+
 # Additional Information
 
 The frontend API is the only part of OBS Studio that have access to "*OBS View*" (dock, action…), "*OBS Controller*" and "*OBS Model*" (sources, scenes…).
