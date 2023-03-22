@@ -31,7 +31,9 @@ Many elements of the settings UI related to services will be moved inside servic
 - "Get Stream Key" button
 - "More Info" button
 
-Advanced network settings will also be replace by protocol output properties view below the service properties view.
+This streaming output will be selected through the settings windows and no longer auto-selected while starting the stream and its property view will be placed below the service properties view.
+
+Advanced network settings will also be replace by the output properties view below the service properties view, since those are meant for `"rtmp_output"` (RTMP(S) output).
 
 ### Common, uncommon
 
@@ -48,6 +50,14 @@ Maximums and supported resolutions will be strict (e.g. Twitch allows 6000 kbps,
 This will require to introduce in the Property API a way to indicate that the settings are not valid.
 
 TODO: Think about recommendation
+
+## Deprecations in the Frontend API
+
+Those functions will be deprecated without replacement:
+- `obs_frontend_set_streaming_service()` must be deprecated because the output selection is done in the settings windows and is no longer done while the stream is starting.
+- `obs_frontend_save_streaming_service()` must be deprecated because plugin should not be able to override what is saved by the settings window.
+
+Those needs to deprecated before the rest of the RFC implementation is merged or those functions will have to be turned into stub functions while being deprecated.
 
 ## Service plugins
 ### Service API
