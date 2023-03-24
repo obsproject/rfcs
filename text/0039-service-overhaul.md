@@ -64,11 +64,22 @@ Those functions will be modified:
 
 Adding missing `get_properties2()` and `get_default2()` functions for service might be required.
 
-**For now all services shall be compatible with H264. Removing this limitation requires to rework of the Output settings UI which is plan for another RFC.**
+TODO: Add details about the new flag attribute
+
+**All services must at least be compatible with H264 because of how simple output mode is designed.**
+
+### `rtmp-services`
+
+Services provided by this plugin (`"rtmp_custom"`, `"rtmp_common"`) will be deprecated and completely unused in OBS Studio.
+
+Those are deprecated rather than completely removed to allow scripting and plugins to migrate if they happen to use them.
+
+Its service JSON will no longer be updated.
+
 
 ### `custom-service`
 
-This plugin is meant to provide a replacement for `rtmp_custom` type.
+This plugin is meant to provide a replacement for `"rtmp_custom"` type, `"custom_service"`.
 
 If OBS need to be heavily dependent to one service plugin, it shall be this one.
 
@@ -77,9 +88,9 @@ Property view will change depending of the protocol.
 
 ### `obs-services`
 
-This plugin is meant to provide a replacements for `rtmp_common` type for services who doesn't have custom behavior or integration.
+This plugin is meant to provide a replacements for `"rtmp_common"` type for services who doesn't have custom behavior or integration.
 
-This plugin will need a brand new services.json with new format, to register each streaming service with their own id. No more things like `rtmp_common` id.
+This plugin will need a brand new services.json with new format, to register each streaming service with their own id. No more things like `"rtmp_common"` id.
  
 Those services will be able to provide multiple protocols so no more "Service - HLS" and "Service - FTL".
 
@@ -93,13 +104,13 @@ Only improvements will be accepted in the code of this plugin.
 
 #### Service ID naming scheme
 - Only lower case letter
-- All prefixed by `obs-` in code, to avoid potential id conflict with streaming service third-party plugins.
+- (**Might be removed**) All prefixed by `obs-` in code, to avoid potential id conflict with streaming service third-party plugins.
 - Hyphen `-` are only used to distinguish two service providing the same stream service but with noteworthy differences like NicoNico (free & premium).
 - Like this if the service needs a specific behavior, you can 'transfer' it from `obs-services` to a new first-party plugin and keep the same id. The change will be seamless for the user if done properly.
 
 ### Special case plugins
 
-This/Those plugin(s) is/are meant to provide replacements for `rtmp_common` type for services which need a custom behavior.
+This/Those plugin(s) is/are meant to provide replacements for `"rtmp_common"` type for services which need a custom behavior.
 
 This/Those plugin(s) is/are meant to have implemented and register services which need a specific behavior like custom ingest with a unique id for each one.
 
