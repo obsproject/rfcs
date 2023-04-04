@@ -37,6 +37,8 @@ The service output settings (if any) will be saved in the `service.json` file.
 
 Advanced network settings will also be replace by the output properties view below the service properties view, since those are meant for `"rtmp_output"` (RTMP(S) output).
 
+**TODO/REDO: All services must at least be compatible with H264 because of how simple output mode is designed.**
+
 ### Common, uncommon
 
 Spoiler: Streaming services will be individually registered, so no more `rtmp_common` that represent various services.
@@ -59,14 +61,25 @@ Those functions will be modified:
 - `obs_frontend_set_streaming_service()` because the output selection is done in the settings windows and is no longer done while the stream is starting will now swap the output if the service protocol and the actual output does not match.
 - `obs_frontend_save_streaming_service()` will save service output settings.
 
+## About the FTL protocol
+
+The FTL protocol is actually planned to be deprecated once a new protocol is added after this RFC is implemented.
+
+Any services that only support FTL will follow the deprecation cycle and be dropped at the same time as FTL if those services did not added support for another protocol.
+
 ## Service plugins
 ### Service API
 
-Adding missing `get_properties2()` and `get_default2()` functions for service might be required.
+Adding to `obs_service_info`:
+  - `uint32_t flags` with the following flags:
+    - `OBS_SERVICE_DEPRECATED`: (**TODO: Re-think about it because of internal**) The service is deprecated and will not be shown in the UI combobox list.
+    - `OBS_SERVICE_INTERNAL`: The service is meant to be used internally in some plugin (e.g., WebSocket, Scripting) and usually not directly exposed in the UI.
+    - `OBS_SERVICE_UNCOMMON`: The service can be hidden behind a "Show All/More" option UI/UX-wise.
+    - `OBS_SERVICE_ANY_PROTOCOL`: The service supports any protocol, mainly meant for `"custom_service"`
+  - `const char *supported_protocols`: Protocol supported by the service, required if `OBS_SERVICE_ANY_PROTOCOL` is not set as a flag.
+  - `obs_properties_t *(*get_properties2)(void *data, void *type_data)`: Same as its non-2 variant but give access to the `type_data` pointer.
 
-TODO: Add details about the new flag attribute
-
-**All services must at least be compatible with H264 because of how simple output mode is designed.**
+**TODO: Adding `get_default2()` functions for service might be required.**
 
 ### `rtmp-services`
 
@@ -77,14 +90,26 @@ Those are deprecated rather than completely removed to allow scripting and plugi
 Its service JSON will no longer be updated.
 
 
-### `custom-service`
+### `custom-services`
 
-This plugin is meant to provide a replacement for `"rtmp_custom"` type, `"custom_service"`.
+If OBS Studio need to be heavily dependent to one service plugin, it must be this one.
 
-If OBS need to be heavily dependent to one service plugin, it shall be this one.
+This plugin is meant to provide replacements for the `"rtmp_custom"` type.
 
-The protocol will be detected (or maybe forced set by the user, e.g. HLS).
-Property view will change depending of the protocol.
+#### `"custom_service"`
+
+This the only service of this plugin thar will be exposed to the user through the UI.
+
+The protocol will be selected by the user and the properties view will change depending of the protocol.
+
+**TODO: Add about third-party support in `"custom_service"` type**
+
+#### Custom type per protocol
+
+Service types that support only the protocol inside their id (`"custom_`*insert lowercase protocol acronym*`"`) for any first-party protocol except FTL (deprecation).
+
+Services that will only support the first-party protocol related to their id/type.
+The flag `OBS_SERVICE_INTERNAL` will be applied to not show them in the UI list. Those are meant for being used in WebSocket and scripting.
 
 ### `obs-services`
 
@@ -110,11 +135,19 @@ Only improvements will be accepted in the code of this plugin.
 
 ### Special case plugins
 
-This/Those plugin(s) is/are meant to provide replacements for `"rtmp_common"` type for services which need a custom behavior.
+Those plugins are meant to provide replacements for `"rtmp_common"` type for services that were working around the JSON usually by adding ingest management code and is not a service with an integration.
 
-This/Those plugin(s) is/are meant to have implemented and register services which need a specific behavior like custom ingest with a unique id for each one.
+So those services that match those will have their own plugin.
 
-**TODO: Write about maintenance**
+4 services are concerned:
+- Dacast
+- Nimo TV
+- SHOWROOM
+- YouNow (FTL only, also falls under the FTL deprecation cycle)
+
+Beside the `"rtmp_common"` part being replace by a unique service type, most of the ingest code will stay identical.
+
+The maintenance of the code of those services after implementation will be on the organisation that originaly added them to `rtmp-services`.
 
 ### Conversion (WIP Needs a re-work)
 
@@ -224,9 +257,9 @@ YouTube is not the only service that could have or need a "Manage Broadcast" but
 #### Twitch VOD track
 This will be the **only one** custom feature that will be allowed in OBS Studio UI code.
 
-## Service JSON
+## Service JSON for `obs-services`
 
-### Old version
+### Old version from `rtmp-services`
 
 The old actually looks like this:
 ```json
@@ -320,7 +353,7 @@ Those JSON Schemas (Draft 2020-12) will be:
 
 Those are all present in `0039-json-schemas` folder with an example of `obs-services` JSON.
 
-*Documention in schemas are in progress, and a schema for integration plugin should also be made.*
+*Documentation in schemas are in progress, and a schema for integration plugin should also be made.*
 
 JSON Schema allows to validate `services.json` (in `obs-services` case) when a PR is made against it.
 
