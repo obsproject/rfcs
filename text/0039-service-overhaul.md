@@ -72,7 +72,7 @@ Any services that only support FTL will follow the deprecation cycle and be drop
 
 Adding to `obs_service_info`:
   - `uint32_t flags` with the following flags:
-    - `OBS_SERVICE_DEPRECATED`: (**TODO: Re-think about it because of internal**) The service is deprecated and will not be shown in the UI combobox list.
+    - `OBS_SERVICE_DEPRECATED`: The service is marked as deprecated.
     - `OBS_SERVICE_INTERNAL`: The service is meant to be used internally in some plugin (e.g., WebSocket, Scripting) and usually not directly exposed in the UI.
     - `OBS_SERVICE_UNCOMMON`: The service can be hidden behind a "Show All/More" option UI/UX-wise.
   - `const char *supported_protocols`: Protocol supported by the service.
@@ -82,7 +82,7 @@ Adding to `obs_service_info`:
 
 ### `rtmp-services`
 
-Services provided by this plugin (`"rtmp_custom"`, `"rtmp_common"`) will be deprecated and completely unused in OBS Studio.
+Services provided by this plugin (`"rtmp_custom"`, `"rtmp_common"`) will be deprecated (`OBS_SERVICE_DEPRECATED` and `OBS_SERVICE_INTERNAL` applied) and completely unused in OBS Studio.
 
 Those are deprecated rather than completely removed to allow scripting and plugins to migrate if they happen to use them.
 
