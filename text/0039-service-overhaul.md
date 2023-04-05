@@ -75,8 +75,7 @@ Adding to `obs_service_info`:
     - `OBS_SERVICE_DEPRECATED`: (**TODO: Re-think about it because of internal**) The service is deprecated and will not be shown in the UI combobox list.
     - `OBS_SERVICE_INTERNAL`: The service is meant to be used internally in some plugin (e.g., WebSocket, Scripting) and usually not directly exposed in the UI.
     - `OBS_SERVICE_UNCOMMON`: The service can be hidden behind a "Show All/More" option UI/UX-wise.
-    - `OBS_SERVICE_ANY_PROTOCOL`: The service supports any protocol, mainly meant for `"custom_service"`
-  - `const char *supported_protocols`: Protocol supported by the service, required if `OBS_SERVICE_ANY_PROTOCOL` is not set as a flag.
+  - `const char *supported_protocols`: Protocol supported by the service.
   - `obs_properties_t *(*get_properties2)(void *data, void *type_data)`: Same as its non-2 variant but give access to the `type_data` pointer.
 
 **TODO: Adding `get_default2()` functions for service might be required.**
@@ -102,7 +101,11 @@ This the only service of this plugin thar will be exposed to the user through th
 
 The protocol will be selected by the user and the properties view will change depending of the protocol.
 
-**TODO: Add about third-party support in `"custom_service"` type**
+This service will all first-party protocol, the properties view will change visible fields depending on the protocol.
+
+And also support any third-party protocol by allowing to choose which fields (e.g., username + password, stream key, custom field…) to add in the view.
+
+This service will be registered in the "post load module" step (`obs_post_load_modules()`) to make the service aware of all registered protocol in the "load module" step.
 
 #### Custom type per protocol
 
