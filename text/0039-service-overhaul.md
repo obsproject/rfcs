@@ -152,7 +152,13 @@ Beside the `"rtmp_common"` part being replace by a unique service type, most of 
 
 The maintenance of the code of those services after implementation will be on the organisation that originaly added them to `rtmp-services`.
 
-### Conversion (WIP Needs a re-work)
+### Conversion from old services
+
+`streamService.json` will replace `service.json`, a new file approach is taken to avoid sudden breakage if the user happen to downgrade.
+
+`streamService.json` will contain the type/id of the service and its settings but also the type/id of of the used output and its settings.
+
+If `streamService.json` is not found, it will be generated from `service.json` if available.
 
 **Downgrade will break service configuration**
 A JSON or a harcoded list with old service name linked to their new id, to make OBS able to convert the `service.json` to a new one.
