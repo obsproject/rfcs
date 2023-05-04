@@ -11,7 +11,7 @@
         },
         "protocolMapEnum": {
             "$comment": "Enumeration of protocols (with '*' as any) that have various compatible codecs",
-            "enum": ["*","HLS","SRT","RIST"]
+            "enum": ["*","RTMP","RTMPS","HLS","SRT","RIST"]
         },
         "serverPattern": {
             "$comment": "Pattern to enforce a supported server URL",

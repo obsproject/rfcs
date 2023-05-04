@@ -48,15 +48,9 @@
                         "if": { "properties": { "url": { "format": "uri" } } },
                         "then": { "properties": { "url": { "format": "uri", "$ref": "protocolDefs.json#/$defs/serverPattern" } } },
                         "else": { "properties": { "url": { "format": "hostname" } } }
-                    },
-                    {
-                        "$comment": "Making 'protocol' required if no unique prefix is found (e.g. HLS will require 'protocol')",
-                        "if": { "not": { "properties": { "url": { "$ref": "protocolDefs.json#/$defs/notRequireProtocolPattern" } } } },
-                        "then": { "required": ["protocol"] },
-                        "else": { "properties": { "protocol": { "description": "This property is unneeded if the URL scheme is unique to a streaming protocol", "const": "Remove this property" } } }
                     }
                 ],
-                "required": ["name","url"],
+                "required": ["name","url","protocol"],
                 "unevaluatedProperties": false
             },
             "minItems": 1,
@@ -225,7 +219,7 @@
                             "type": "object",
                             "title": "Recommended Video Bitrate",
                             "description": "Recommended video bitrate per codec",
-                            "propertyNames": { "$ref": "#codecDefs.json/$defs/videoCodecEnum" },
+                            "propertyNames": { "$ref": "codecDefs.json#/$defs/videoCodecEnum" },
                             "additionalProperties": { "type": "integer", "exclusiveMinimum": 0 },
                             "minProperties": 1,
                             "unevaluatedProperties":false
@@ -234,7 +228,7 @@
                             "type": "object",
                             "title": "Recommended Audio Bitrate",
                             "description": "Recommended audio bitrate per codec",
-                            "propertyNames": { "$ref": "#codecDefs.json/$defs/audioCodecEnum" },
+                            "propertyNames": { "$ref": "codecDefs.json#/$defs/audioCodecEnum" },
                             "additionalProperties": { "type": "integer", "exclusiveMinimum": 0 },
                             "minProperties": 1,
                             "unevaluatedProperties":false
@@ -246,7 +240,7 @@
                             "propertyNames": { "$ref": "#/$defs/resolutionFrameratePattern" },
                             "additionalProperties": {
                                 "type": "object",
-                                "propertyNames": { "$ref": "#codecDefs.json/$defs/videoCodecEnum" },
+                                "propertyNames": { "$ref": "codecDefs.json#/$defs/videoCodecEnum" },
                                 "additionalProperties": { "type": "integer", "exclusiveMinimum": 0 },
                                 "minProperties": 1,
                                 "unevaluatedProperties":false

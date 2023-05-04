@@ -25,9 +25,8 @@ Many elements of the settings UI related to services will be moved inside servic
 - Stream key field
 - Username and password fields
 - OAuth connect disconnect button
-- Text with clickable link
+- Text with clickable link (e.g., YouTube integration links)
 - Maximum and recommended settings information
-- Ignore "recommended setting" checkbox
 - "Get Stream Key" button
 - "More Info" button
 
@@ -76,9 +75,8 @@ Adding to `obs_service_info`:
     - `OBS_SERVICE_INTERNAL`: The service is meant to be used internally in some plugin (e.g., WebSocket, Scripting) and usually not directly exposed in the UI.
     - `OBS_SERVICE_UNCOMMON`: The service can be hidden behind a "Show All/More" option UI/UX-wise.
   - `const char *supported_protocols`: Protocol supported by the service.
+  - `void (*get_defaults2)(void *type_data, obs_data_t *settings)`: Same as its non-2 variant but give access to the `type_data` pointer.
   - `obs_properties_t *(*get_properties2)(void *data, void *type_data)`: Same as its non-2 variant but give access to the `type_data` pointer.
-
-**TODO: Adding `get_default2()` functions for service might be required.**
 
 ### `rtmp-services`
 
@@ -160,9 +158,9 @@ The maintenance of the code of those services after implementation will be on th
 
 If `streamService.json` is not found, it will be generated from `service.json` if available.
 
-**Downgrade will break service configuration**
-A JSON or a harcoded list with old service name linked to their new id, to make OBS able to convert the `service.json` to a new one.
+A JSON or a harcoded list with old service name linked to their new id, to make OBS able to convert the service to a new one.
 
+**Downgrade might break service integration**
 Auth integration config inside `basic.ini` will be also transfered under a new section if in service settings.
 
 ### Integrations
@@ -347,7 +345,7 @@ The old actually looks like this:
 
 #### Issues with this format
 - About `"output"`, OBS consider every service as RTMP if not added and it's not a recommended settings at all. It makes OBS use the right protocol for the service. Also this prevent a service of being multi-protocol.
-- About `"recommended"`, most of the options seems to H264 related
+- About `"recommended"`, most of the options seems to H264 related and are mostly only maximums.
 - `"common"`, the name makes it not understandable at the first sight maybe adding some documention would be good thing.
 
 ### New format (WIP)
