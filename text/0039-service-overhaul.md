@@ -75,8 +75,14 @@ Adding to `obs_service_info`:
     - `OBS_SERVICE_INTERNAL`: The service is meant to be used internally in some plugin (e.g., WebSocket, Scripting) and usually not directly exposed in the UI.
     - `OBS_SERVICE_UNCOMMON`: The service can be hidden behind a "Show All/More" option UI/UX-wise.
   - `const char *supported_protocols`: Protocol supported by the service.
+  - `enum obs_service_audio_track_cap (*get_audio_track_cap)(void *data)`: Returns the service audio track capability with the following possible values:
+    - `OBS_SERVICE_AUDIO_SINGLE_TRACK` - Only a single audio track is used by the service
+    - `OBS_SERVICE_AUDIO_ARCHIVE_TRACK` - A second audio track is accepted and is meant to become the archive/VOD audio
+    - `OBS_SERVICE_AUDIO_MULTI_TRACK` - Supports multiple audio tracks
   - `void (*get_defaults2)(void *type_data, obs_data_t *settings)`: Same as its non-2 variant but give access to the `type_data` pointer.
   - `obs_properties_t *(*get_properties2)(void *data, void *type_data)`: Same as its non-2 variant but give access to the `type_data` pointer.
+
+TODO: List functions added to the Services API
 
 ### `rtmp-services`
 
