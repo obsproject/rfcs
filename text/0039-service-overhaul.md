@@ -140,21 +140,19 @@ Only improvements will be accepted in the code of this plugin.
 - Hyphen `-` are only used to distinguish two service providing the same stream service but with noteworthy differences like NicoNico (free & premium).
 - Like this if the service needs a specific behavior, you can 'transfer' it from `obs-services` to a new first-party plugin and keep the same id. The change will be seamless for the user if done properly.
 
-### Special case plugins
+### Plugin for special case services
 
-Those plugins are meant to provide replacements for `"rtmp_common"` type for services that were working around the JSON usually by adding ingest management code and is not a service with an integration.
-
-So those services that match those will have their own plugin.
+This plugins is meant to provide replacements for `"rtmp_common"` type for services that were working around the JSON usually by adding ingest management code (except Twitch).
 
 4 services are concerned:
 - Dacast
 - Nimo TV
 - SHOWROOM
-- YouNow (FTL only, also falls under the FTL deprecation cycle)
+- YouNow (FTL only, so falls under the FTL deprecation cycle)
 
 Beside the `"rtmp_common"` part being replace by a unique service type, most of the ingest code will stay identical.
 
-The maintenance of the code of those services after implementation will be on the organisation that originaly added them to `rtmp-services`.
+This plugin is not meant to be maintained by OBS Project, but as a temporary measure until those services create their own third-party plugins. So all of those services will be put in deprecation.
 
 ### Conversion from old services
 
