@@ -268,6 +268,9 @@ YouTube is not the only service that could have or need a "Manage Broadcast" but
 #### Twitch VOD track
 This will be the **only one** custom feature that will be allowed in OBS Studio UI code.
 
+### If the saved service id is not registered becuase the plugin is longer there
+OBS Studio will fallback to an empty `"custom_service"` with a message for the user explaining that maybe a plugin is missing.
+
 ## Service JSON for `obs-services`
 
 ### Old version from `rtmp-services`
