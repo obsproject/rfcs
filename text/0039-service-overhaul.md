@@ -164,6 +164,8 @@ If `streamService.json` is not found, it will be generated from `service.json` i
 
 A JSON or a harcoded list with old service name linked to their new id, to make OBS able to convert the service to a new one.
 
+**TODO: Some user might have a removed service (e.g., Mixer)**
+
 **Downgrade might break service integration**
 Auth integration config inside `basic.ini` will be also transfered under a new section if in service settings.
 
@@ -187,16 +189,16 @@ Making it per profile could avoid this.
 Integrations docks will be added after specific frontend event.
 So after each of them the dock state needs to be restored.
 
-- `OBS_FRONTEND_EVENT_FINISHING_LOADING` (finish**ing** not finished) needs to be created to allow adding docks. And restore dock state before if docks are indeed added before `OBS_FRONTEND_EVENT_FINISHED_LOADING` is emitted.
+- The initial restoration of the profile dock state will be moved just after `OBS_FRONTEND_EVENT_FINISHED_LOADING`. 
 
 - `OBS_FRONTEND_EVENT_PROFILE_CHANGED`, profile dock state will be loaded after a profile is changes.
 
 Also they will be removed after specific frontend event.
 So before each of them the dock state needs to be saved.
 
-- `OBS_FRONTEND_EVENT_PROFILE_CHANGING`, profile dock state will be saved before a profile is changes.
+- `OBS_FRONTEND_EVENT_PROFILE_CHANGING`, profile dock state will be saved before a profile is changed.
 
-- `OBS_FRONTEND_EVENT_EXIT`, profile dock state will be saved before while OBS is exiting.
+- `OBS_FRONTEND_EVENT_EXIT`, profile dock state must be saved before this event while OBS is exiting.
 
 #### Dock addition (**The concept needs to be tested**)
 
@@ -213,7 +215,7 @@ A variant of `obs_service_create()` to spawn signal-less (and maybe even private
 
 The plugin will have to store if `OBS_FRONTEND_EVENT_FINISHED_LOADING` was passed or not.
 
-If created before `OBS_FRONTEND_EVENT_FINISHED_LOADING`, a front-event callback will be added to react to `OBS_FRONTEND_EVENT_FINISHING_LOADING` to add docks (if integration connected) and then removed itself.
+If created before `OBS_FRONTEND_EVENT_FINISHED_LOADING`, a front-event callback will be added to react to to later event to add docks (if integration connected).
 
 When created/updated (after `OBS_FRONTEND_EVENT_FINISHED_LOADING`) the service will add the docks (if integration connected).
 
