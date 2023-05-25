@@ -9,13 +9,13 @@
 
 Actually even if OBS has the Service API, developer can't create third-party service plugin because there is no mechanism to use them at all.
 
-Before OBS in the Stream settings page, property views were used for services but with only two registered services `rtmp_common` which contain all services and `rtmp_custom` for custom servers.
+Before in OBS in the Stream settings page, property views were used for services but with only two registered services `rtmp_common` which contain all services and `rtmp_custom` for custom servers.
 
-Nowadays in OBS, this page show the list of services with many new elements showed of hidden depending of the selection (like recommended settings). With also Twitch and Restream OAuth integrations. And no use of the property views provided by `rtmp-services`.
+Currently in OBS, this page shows the list of services with many new elements shown or hidden depending on the selection (like recommended settings). With also Twitch and Restream OAuth integrations. And no use of the property views provided by `rtmp-services`.
 
 This need to be refactored to re-introduce property views for the service and for the protocol output.
 
-This will also provide the ability for some stream services to be able to made their own plugin.
+This will also provide the ability for some stream services to be able to make their own plugin.
 
 # Design
 
@@ -34,7 +34,7 @@ This streaming output will be selected through the settings windows and no longe
 
 The service output settings (if any) will be saved in the `service.json` file.
 
-Advanced network settings will also be replace by the output properties view below the service properties view, since those are meant for `"rtmp_output"` (RTMP(S) output).
+Advanced network settings will also be replaced by the output properties view below the service properties view, since those are meant for `"rtmp_output"` (RTMP(S) output).
 
 **TODO/REDO: All services must at least be compatible with H264 because of how simple output mode is designed.**
 
@@ -57,7 +57,7 @@ TODO: Think about recommendation
 ## Frontend API
 
 Those functions will be modified:
-- `obs_frontend_set_streaming_service()` because the output selection is done in the settings windows and is no longer done while the stream is starting will now swap the output if the service protocol and the actual output does not match.
+- `obs_frontend_set_streaming_service()` because while the output selection is done in the settings windows and is no longer done while the stream is starting will now swap the output if the service protocol and the actual output does not match.
 - `obs_frontend_save_streaming_service()` will save service output settings.
 
 ## About the FTL protocol
@@ -95,21 +95,21 @@ Its service JSON will no longer be updated.
 
 ### `custom-services`
 
-If OBS Studio need to be heavily dependent to one service plugin, it must be this one.
+If OBS Studio needs to be heavily dependent on one service plugin, it must be this one.
 
 This plugin is meant to provide replacements for the `"rtmp_custom"` type.
 
 #### `"custom_service"`
 
-This the only service of this plugin thar will be exposed to the user through the UI.
+This the only service of this plugin that will be exposed to the user through the UI.
 
 The protocol will be selected by the user and the properties view will change depending of the protocol.
 
-This service will all first-party protocol, the properties view will change visible fields depending on the protocol.
+This service will support all first-party protocols, the properties view will change visible fields according to the protocol.
 
-And also support any third-party protocol by allowing to choose which fields (e.g., username + password, stream key, custom field…) to add in the view.
+And also support any third-party protocols by allowing to choose which fields (e.g., username + password, stream key, custom field…) to add in the view.
 
-This service will be registered in the "post load module" step (`obs_post_load_modules()`) to make the service aware of all registered protocol in the "load module" step.
+This service will be registered in the "post load module" step (`obs_post_load_modules()`) to make the service aware of all registered protocols in the "load module" step.
 
 #### Custom type per protocol
 
@@ -120,7 +120,7 @@ The flag `OBS_SERVICE_INTERNAL` will be applied to not show them in the UI list.
 
 ### `obs-services`
 
-This plugin is meant to provide a replacements for `"rtmp_common"` type for services who doesn't have custom behavior or integration.
+This plugin is meant to provide a replacement for `"rtmp_common"` type for services who don't rely on custom behavior nor integration.
 
 This plugin will need a brand new services.json with new format, to register each streaming service with their own id. No more things like `"rtmp_common"` id.
  
@@ -173,17 +173,17 @@ Auth integration config inside `basic.ini` will be also transfered under a new s
 
 Twitch, YouTube and Restream have their own integration in OBS with OAuth. But those need to be isolated as plugins.
 
-Those will plugins will provide the basic and OAuth version of the services as one services.
+Those plugins will provide the basic and OAuth version of the services as one services.
 
 If OBS is built without client ids and hashes, those plugins will be built without their integration.
 
 #### Dock state
 
-Actually the dock state is global in the config, but with docks that appear depending on the service which is per profile which is still "also" the case with "old" integrations.
+Actually the dock state is global (same on any profile). But with docks that appear depending on the service integration which is per profile.
 
-This can lead to dock state losses between profile switching and exiting. The "old" integration actually store a dock state in the profile config and restore it after the integration is is loaded.
+This can lead to dock state losses between profile switching and exiting. Currents integrations actually store a dock state in the profile config and restore it after the integration is loaded.
 
-But making restoring a dock state from a plugin should should not be considered at all.
+But restoring a dock state from a plugin must not be considered at all.
 Making it per profile could avoid this.
 
 Integrations docks will be added after specific frontend event.
