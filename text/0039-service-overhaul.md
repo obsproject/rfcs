@@ -57,7 +57,7 @@ TODO: Think about recommendation
 ## Frontend API
 
 Those functions will be modified:
-- `obs_frontend_set_streaming_service()` because while the output selection is done in the settings windows and is no longer done while the stream is starting will now swap the output if the service protocol and the actual output does not match.
+- `obs_frontend_set_streaming_service()` because while the output selection is done in the settings windows and is no longer done while the stream is starting will now swap the output if the service protocol and the actual output do not match.
 - `obs_frontend_save_streaming_service()` will save service output settings.
 
 ## About the FTL protocol
