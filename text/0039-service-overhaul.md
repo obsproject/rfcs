@@ -81,6 +81,9 @@ Adding to `obs_service_info`:
     - `OBS_SERVICE_AUDIO_MULTI_TRACK` - Supports multiple audio tracks
   - `void (*get_defaults2)(void *type_data, obs_data_t *settings)`: Same as its non-2 variant but give access to the `type_data` pointer.
   - `obs_properties_t *(*get_properties2)(void *data, void *type_data)`: Same as its non-2 variant but give access to the `type_data` pointer.
+  - `bool (*can_bandwidth_test)(void *data)`: Return if the service is able to do bandwith test
+  - `void (*enable_bandwidth_test)(void *data, bool enabled)`: Enable bandwidth test on the service
+  - `bool (*bandwidth_test_enabled)(void *data)`: Return if the service has the bandwidth test enabled
 
 TODO: List functions added to the Services API
 
@@ -200,7 +203,7 @@ So before each of them the dock state needs to be saved.
 
 - `OBS_FRONTEND_EVENT_EXIT`, profile dock state must be saved before this event while OBS is exiting.
 
-#### Dock addition (**The concept needs to be tested**)
+#### Dock addition
 
 Integration plugins will need events/signals to be able to add and remove their docks at the right moment.
 
@@ -219,30 +222,19 @@ Note: Free functions for each structure that requires it because of a "dynamic" 
 
 `bool obs_frontend_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
 
-CEF should be initialised after `OBS_FRONTEND_EVENT_FINISHED_LOADING`.
-
 ```C++
-struct obs_frontend_browser_connect {
-	void *qobject; // QObject
-	const char *slot; // SLOT()
-};
-
 struct obs_frontend_browser_params {
 	const char *url;
-	bool enable_cookie;
-	struct dstr startup_script;
-	DARRAY(char *) force_popup_url;
-        DARRAY(struct obs_frontend_browser_connect) title_changed;
-        DARRAY(struct obs_frontend_browser_connect) url_changed;
+	const char *startup_script;
+	const char **force_popup_url;
+  bool enable_cookie;
 };
 ```
 
 - `const char *url`, URL of the dock.
+- `const char *startup_script` allow to set a startup script for the dock.
+- `const char **force_popup_url` allow to set a list of URL to force those to popup.
 - `bool enable_cookie`, if true `panel_cookie` will be set on the dock rather than a `nullptr`. This will allow to keep cookie which is required.
-- `struct dstr startup_script` allow to set a startup script for the dock.
-- `DARRAY(char *) force_popup_url` allow to set a list of URL to force those to popup.
-- `DARRAY(struct obs_frontend_browser_connect) title_changed` allow to connect QCefWidget `titleChanged()` signal to a slot
-- `DARRAY(struct obs_frontend_browser_connect) url_changed` allow to connect QCefWidget `urlChanged()` signal to a slot
 
 `void *obs_frontend_get_browser_widget(struct obs_frontend_browser_params *params)` is the function that will return a browser widget (QCefWidget) that we can cast to a QWidget for OAuth or a custom chat dock (e.g. Youtube).
 
@@ -318,8 +310,11 @@ struct obs_frontend_broadcast_flow {
 
 - `const char *(*get_last_error)(void *priv)`, return the last error if differed callbacks failed.
 
+#### Twitch and YouTube bandwidth test
+Those services have code in the UI to have such feature, it will now be moved to their respective services with the new Services API related to bandwidth test.
+
 #### Twitch VOD track
-This will be the **only one** custom feature that will be allowed in OBS Studio UI code.
+This Twitch-only feature will be modified to rely on `obs_service_audio_track_cap` rather than the service name.
 
 ### If the saved service id is not registered becuase the plugin is longer there
 OBS Studio will fallback to an empty `"custom_service"` with a message for the user explaining that maybe a plugin is missing.
