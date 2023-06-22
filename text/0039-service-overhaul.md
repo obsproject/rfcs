@@ -204,24 +204,15 @@ So before each of them the dock state needs to be saved.
 
 Integration plugins will need events/signals to be able to add and remove their docks at the right moment.
 
+The plugin will have to store if `OBS_FRONTEND_EVENT_FINISHED_LOADING` or `OBS_FRONTEND_EVENT_PROFILE_CHANGED` was passed or not.
 
-3 signals will be added to Core OBS signaling:
+If created before these events, the plugin will wait their emission to add docks (if integration connected).
 
-- "service_create (ptr service)"
-- "service_update (ptr service)"
-- "service_destroy (ptr service)"
-
-A variant of `obs_service_create()` to spawn signal-less (and maybe even private) service will be needed to allow protocol checking in settings.
-
-The plugin will have to store if `OBS_FRONTEND_EVENT_FINISHED_LOADING` was passed or not.
-
-If created before `OBS_FRONTEND_EVENT_FINISHED_LOADING`, a front-event callback will be added to react to to later event to add docks (if integration connected).
-
-When created/updated (after `OBS_FRONTEND_EVENT_FINISHED_LOADING`) the service will add the docks (if integration connected).
+When created/updated (after these events) the service will add the docks (if integration connected).
 
 When `OBS_FRONTEND_EVENT_PROFILE_CHANGING` `OBS_FRONTEND_EVENT_EXIT` or the service is destroyed, docks will be removed (if integration connected).
 
-#### Browser features
+#### Browser features (MORE CHANGES INCOMMING)
 The Front-end API needs to enable the possibility to access some `obs-browser` related feature like adding browser docks and generating widgets.
 
 Note: Free functions for each structure that requires it because of a "dynamic" type will be also added.
@@ -253,19 +244,79 @@ struct obs_frontend_browser_params {
 - `DARRAY(struct obs_frontend_browser_connect) title_changed` allow to connect QCefWidget `titleChanged()` signal to a slot
 - `DARRAY(struct obs_frontend_browser_connect) url_changed` allow to connect QCefWidget `urlChanged()` signal to a slot
 
-`bool obs_frontend_add_browser_dock(const char *id, const char *title, struct obs_frontend_browser_dock *params)` is the function that will add those browser docks to the UI.
-
-`void *obs_frontend_create_browser_widget(struct obs_frontend_browser_params *params)` is the function that will return a browser widget (QCefWidget) that we can cast to a QWidget for OAuth or a custom chat dock (e.g. Youtube).
+`void *obs_frontend_get_browser_widget(struct obs_frontend_browser_params *params)` is the function that will return a browser widget (QCefWidget) that we can cast to a QWidget for OAuth or a custom chat dock (e.g. Youtube).
 
 `void obs_frontend_delete_browser_cookie(const char *url)` will remove cookies related to the given URL.
 
-#### Broadcast flow (WIP)
-YouTube is not the only service that could have or need a "Manage Broadcast" button. So adding a way to make other service plugin able to use it.
+#### Broadcast flow
+YouTube is not the only service that could have or need a "Manage Broadcast" button but the feature/flow is actually made only for how YouTube works.
 
-- Add a callback bond to a service pointer meant to be called when the "Manage Broadcast" button is clicked.
-- Add a callback setter in the frontend-api which will make the button show up.
-- Add a callback unsetter in the frontend-api which disable the button.
+So refactoring it to make service plugin able to use it without enforcing YouTube flow on them is required.
 
+Inside the Frontend API:
+
+ - `void obs_frontend_add_broadcast_flow(const obs_service_t *service, const struct obs_frontend_broadcast_flow *flow)` adds a broacast flow bound the given service. If the given service is actually the same service as OBS Studio use, the broadcast flow will be enabled.
+
+ - `void obs_frontend_remove_broadcast_flow(const obs_service_t *service)` removes the broadcast flow. If the given service is actually the same service as OBS Studio use, the broadcast flow will be dsiabled.
+
+```c
+struct obs_frontend_broadcast_flow {
+	void *priv;
+
+	uint32_t flags;
+
+	enum obs_broadcast_state (*get_broadcast_state)(void *priv);
+	enum obs_broadcast_start (*get_broadcast_start_type)(void *priv);
+	enum obs_broadcast_stop (*get_broadcast_stop_type)(void *priv);
+
+	void (*manage_broadcast)(void *priv);
+	void (*manage_broadcast2)(void *priv, bool streaming_active);
+
+	void (*stopped_streaming)(void *priv);
+
+	void (*differed_start_broadcast)(void *priv);
+	enum obs_broadcast_stream_state (*is_broadcast_stream_active)(void *priv);
+
+	bool (*differed_stop_broadcast)(void *priv);
+
+	const char *(*get_last_error)(void *priv);
+};
+```
+
+- `uint32_t flags`  with the following flags:
+  - `OBS_BROADCAST_FLOW_ALLOW_MANAGE_WHILE_STREAMING`, the flow allow managing broadcast while streaming
+  - `OBS_BROADCAST_FLOW_ALLOW_DIFFERED_BROADCAST_START`, the flow can set broadcast that require to be started after the streaming is started.
+  - `OBS_BROADCAST_FLOW_ALLOW_DIFFERED_BROADCAST_STOP`, the flow can set broadcast that require to be stopped after the streaming is stopped.
+
+- `enum obs_broadcast_state (*get_broadcast_state)(void *priv)` return the state of the broadcast:
+  - `OBS_BROADCAST_NONE`, no broadcast is setup
+  - `OBS_BROADCAST_ACTIVE`, the broacast is active
+  - `OBS_BROADCAST_INACTIVE`, the broadcast will need a differed start
+
+- `enum obs_broadcast_start (*get_broadcast_start_type)(void *priv)` return the start type of the broadcast:
+  - `OBS_BROADCAST_START_WITH_STREAM`, the broadcast start with the stream
+  - `OBS_BROADCAST_START_WITH_STREAM_NOW`, same as the previous but streaming is also started
+  - `OBS_BROADCAST_START_DIFFER_FROM_STREAM`, the broadcast will need a differed start
+
+- `enum obs_broadcast_stop (*get_broadcast_stop_type)(void *priv)` return the stop type of the broadcast:
+  - `OBS_BROADCAST_STOP_NEVER`, the broadcast is not meant to be ended
+  - `OBS_BROADCAST_STOP_WITH_STREAM`, the broadcast is ended with the stream
+  - `OBS_BROADCAST_STOP_DIFFER_FROM_STREAM`,the broadcast will need a differed stop
+
+- `void (*manage_broadcast)(void *priv)` and `void (*manage_broadcast2)(void *priv, bool streaming_active)`, callcack to create and show the service broadcast manager. The `2` variant allows to open it while streaming.
+
+- `void (*stopped_streaming)(void *priv)`, signal to the flow that the broadcast has stopped allowing to change state if needed
+
+- `void (*differed_start_broadcast)(void *priv)`, start the broadcast if differed. If the broadcast is not updated to active, the broadcast failed to start. If success OBS Studio will run a thread with the next callback to wait for the stream to be active.
+
+- `enum obs_broadcast_stream_state (*is_broadcast_stream_active)(void *priv)` return the state of the broadcast stream:
+  - `OBS_BROADCAST_STREAM_FAILURE`, stream has failed to be started
+  - `OBS_BROADCAST_STREAM_INACTIVE`, stream is not started
+  - `OBS_BROADCAST_STREAM_ACTIVE`, stream is started
+
+- `bool (*differed_stop_broadcast)(void *priv)`, stop the broadcast if differred. Returns `true` if it succeeded
+
+- `const char *(*get_last_error)(void *priv)`, return the last error if differed callbacks failed.
 
 #### Twitch VOD track
 This will be the **only one** custom feature that will be allowed in OBS Studio UI code.
