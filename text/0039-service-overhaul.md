@@ -30,13 +30,11 @@ Many elements of the settings UI related to services will be moved inside servic
 - "Get Stream Key" button
 - "More Info" button
 
-This streaming output will be selected through the settings windows and no longer auto-selected while starting the stream and its property view will be placed below the service properties view.
+The streaming output will be selected through the settings windows and its property view will be placed below the service properties view.
 
-The service output settings (if any) will be saved in the `service.json` file.
+The service output settings (if any) will be saved as a JSON string in the profile config file.
 
 Advanced network settings will also be replaced by the output properties view below the service properties view, since those are meant for `"rtmp_output"` (RTMP(S) output).
-
-**TODO/REDO: All services must at least be compatible with H264 because of how simple output mode is designed.**
 
 ### Common, uncommon
 
@@ -84,6 +82,9 @@ Adding to `obs_service_info`:
   - `bool (*can_bandwidth_test)(void *data)`: Return if the service is able to do bandwith test
   - `void (*enable_bandwidth_test)(void *data, bool enabled)`: Enable bandwidth test on the service
   - `bool (*bandwidth_test_enabled)(void *data)`: Return if the service has the bandwidth test enabled
+  - `void (*get_supported_resolutions2)(void *data, struct obs_service_resolution **resolutions,size_t *count, bool *with_fps)`: Replace its non-two variant to enable framerate value
+  - `int (*get_max_video_bitrate)(void *data, const char *codec struct obs_service_resolution resolution)`: Return a maximum bitrate based on a video codec and a resolution
+  - `int (*get_max_codec_bitrate)(void *data, const char *codec)`: Return a maximum bitrate for a specific codec
 
 TODO: List functions added to the Services API
 
@@ -139,7 +140,6 @@ Only improvements will be accepted in the code of this plugin.
 
 #### Service ID naming scheme
 - Only lower case letter
-- (**Might be removed**) All prefixed by `obs-` in code, to avoid potential id conflict with streaming service third-party plugins.
 - Hyphen `-` are only used to distinguish two service providing the same stream service but with noteworthy differences like NicoNico (free & premium).
 - Like this if the service needs a specific behavior, you can 'transfer' it from `obs-services` to a new first-party plugin and keep the same id. The change will be seamless for the user if done properly.
 
@@ -167,10 +167,9 @@ If `streamService.json` is not found, it will be generated from `service.json` i
 
 A JSON or a harcoded list with old service name linked to their new id, to make OBS able to convert the service to a new one.
 
-**TODO: Some user might have a removed service (e.g., Mixer)**
+If the user had an no longer available service, the user will be switch to `custom_service`.
 
-**Downgrade might break service integration**
-Auth integration config inside `basic.ini` will be also transfered under a new section if in service settings.
+Integration settings will be migrated to their respective config file.
 
 ### Integrations
 
@@ -227,6 +226,7 @@ struct obs_frontend_browser_params {
 	const char *url;
 	const char *startup_script;
 	const char **force_popup_url;
+  const char **popup_whitelist_urls;
   bool enable_cookie;
 };
 ```
@@ -234,6 +234,7 @@ struct obs_frontend_browser_params {
 - `const char *url`, URL of the dock.
 - `const char *startup_script` allow to set a startup script for the dock.
 - `const char **force_popup_url` allow to set a list of URL to force those to popup.
+- `const char **popup_whitelist_urls` allow to set a list of URL to popup whitelist.
 - `bool enable_cookie`, if true `panel_cookie` will be set on the dock rather than a `nullptr`. This will allow to keep cookie which is required.
 
 `void *obs_frontend_get_browser_widget(struct obs_frontend_browser_params *params)` is the function that will return a browser widget (QCefWidget) that we can cast to a QWidget for OAuth or a custom chat dock (e.g. Youtube).
@@ -410,7 +411,7 @@ The new format will rely on more strict JSON schemas.
 Those JSON Schemas (Draft 2020-12) will be:
 - `protocolDefs.json`: enums, regex patterns and properties related to protocols to ease protocol additions or removals in schemas
 - `codecDefs.json`: enums, regex patterns and properties related to codecs to ease codec additions or removals in schemas
-- `service.json`: define the service object itself, will be used for every service plugin htat needs a JSON
+- `service.json`: define the service object itself, will be used for every service plugin that needs a JSON
 - `obs-services.json`: `obs-services` JSON Schema
 
 Those are all present in `0039-json-schemas` folder with an example of `obs-services` JSON.
