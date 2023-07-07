@@ -85,6 +85,7 @@ Adding to `obs_service_info`:
   - `void (*get_supported_resolutions2)(void *data, struct obs_service_resolution **resolutions,size_t *count, bool *with_fps)`: Replace its non-two variant to enable framerate value
   - `int (*get_max_video_bitrate)(void *data, const char *codec struct obs_service_resolution resolution)`: Return a maximum bitrate based on a video codec and a resolution
   - `int (*get_max_codec_bitrate)(void *data, const char *codec)`: Return a maximum bitrate for a specific codec
+  - `void (*apply_encoder_settings2)(void *data, const char *encoder_id, obs_data_t *encoder_settings)`: Replace its non-two variant to enable settings per encoder id and codec
 
 TODO: List functions added to the Services API
 
@@ -426,7 +427,7 @@ The use of JSON Schema allows to create specific additions for a specific plugin
 
 - Recommended settings are really recommended settings.
 - Recommendation and maximums are two separated thing.
-- Some settings are now per protocol or per codec, this allow multi-protocol service to be registered under only one id. This will also need to a way to know which codec is used when applying settings.
+- Some settings are now per protocol or per codec, this allow multi-protocol service to be registered under only one id. This will also need a way to know which codec is used when applying settings.
 - Name can be changed without consequences.
 
 # Drawbacks
