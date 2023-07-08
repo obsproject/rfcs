@@ -25,7 +25,7 @@
                     "properties": {
                         "profile": {
                             "type": "string",
-                            "title": "Profile",
+                            "title": "H264 Profile",
                             "enum": [ "baseline", "main", "high" ]
                         },
                         "keyint": {

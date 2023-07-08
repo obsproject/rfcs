@@ -39,17 +39,11 @@
                         "type": "string",
                         "title": "Server URL",
                         "description": "URL of the ingest server.",
+                        "format": "uri",
+                        "$ref": "protocolDefs.json#/$defs/serverPattern",
                         "minLength": 1
                     }
                 },
-                "allOf": [
-                    {
-                        "$comment": "Add format and pattern through 'if' until FTL is dropped",
-                        "if": { "properties": { "url": { "format": "uri" } } },
-                        "then": { "properties": { "url": { "format": "uri", "$ref": "protocolDefs.json#/$defs/serverPattern" } } },
-                        "else": { "properties": { "url": { "format": "hostname" } } }
-                    }
-                ],
                 "required": ["name","url","protocol"],
                 "unevaluatedProperties": false
             },
@@ -208,48 +202,6 @@
             "title": "Recommended settings",
             "description": "Settings that are applied only if the user wants to do so.",
             "allOf": [
-                {
-                    "properties": {
-                        "framerate": {
-                            "type": "integer",
-                            "title": "Recommended Framerate",
-                            "exclusiveMinimum": 0
-                        },
-                        "video_bitrate": {
-                            "type": "object",
-                            "title": "Recommended Video Bitrate",
-                            "description": "Recommended video bitrate per codec",
-                            "propertyNames": { "$ref": "codecDefs.json#/$defs/videoCodecEnum" },
-                            "additionalProperties": { "type": "integer", "exclusiveMinimum": 0 },
-                            "minProperties": 1,
-                            "unevaluatedProperties":false
-                        },
-                        "audio_bitrate": {
-                            "type": "object",
-                            "title": "Recommended Audio Bitrate",
-                            "description": "Recommended audio bitrate per codec",
-                            "propertyNames": { "$ref": "codecDefs.json#/$defs/audioCodecEnum" },
-                            "additionalProperties": { "type": "integer", "exclusiveMinimum": 0 },
-                            "minProperties": 1,
-                            "unevaluatedProperties":false
-                        },
-                        "video_bitrate_matrix": {
-                            "type": "object",
-                            "title": "Recommended Video Bitrate Matrix",
-                            "description": "Recommended video bitrate per supported resolution with framerate and per codec",
-                            "propertyNames": { "$ref": "#/$defs/resolutionFrameratePattern" },
-                            "additionalProperties": {
-                                "type": "object",
-                                "propertyNames": { "$ref": "codecDefs.json#/$defs/videoCodecEnum" },
-                                "additionalProperties": { "type": "integer", "exclusiveMinimum": 0 },
-                                "minProperties": 1,
-                                "unevaluatedProperties":false
-                            },
-                            "minProperties": 1,
-                            "unevaluatedProperties": false
-                        }
-                    }
-                },
                 {
                     "$comment": "Add codec properties",
                     "$ref": "codecDefs.json#/$defs/codecProperties"

@@ -44,14 +44,6 @@ So to hide services behind the "Show All" option, a flag (`OBS_SERVICE_UNCOMMON`
 
 So third-party services are shown in the list by default.
 
-### Maximums and recommended
-
-Maximums and supported resolutions will be strict (e.g. Twitch allows 6000 kbps, more will not be accepted), the UI will not allow to save incompatible settings.
-
-This will require to introduce in the Property API a way to indicate that the settings are not valid.
-
-TODO: Think about recommendation
-
 ## Frontend API
 
 Those functions will be modified:
@@ -111,10 +103,6 @@ This the only service of this plugin that will be exposed to the user through th
 The protocol will be selected by the user and the properties view will change depending of the protocol.
 
 This service will support all first-party protocols, the properties view will change visible fields according to the protocol.
-
-And also support any third-party protocols by allowing to choose which fields (e.g., username + password, stream key, custom field…) to add in the view.
-
-This service will be registered in the "post load module" step (`obs_post_load_modules()`) to make the service aware of all registered protocols in the "load module" step.
 
 #### Custom type per protocol
 
@@ -215,7 +203,7 @@ When created/updated (after these events) the service will add the docks (if int
 
 When `OBS_FRONTEND_EVENT_PROFILE_CHANGING` `OBS_FRONTEND_EVENT_EXIT` or the service is destroyed, docks will be removed (if integration connected).
 
-#### Browser features (MORE CHANGES INCOMMING)
+#### Browser features
 The Front-end API needs to enable the possibility to access some `obs-browser` related feature like adding browser docks and generating widgets.
 
 Note: Free functions for each structure that requires it because of a "dynamic" type will be also added.
@@ -318,7 +306,7 @@ Those services have code in the UI to have such feature, it will now be moved to
 #### Twitch VOD track
 This Twitch-only feature will be modified to rely on `obs_service_audio_track_cap` rather than the service name.
 
-### If the saved service id is not registered becuase the plugin is longer there
+### If the saved service id is not registered because the plugin is longer there
 OBS Studio will fallback to an empty `"custom_service"` with a message for the user explaining that maybe a plugin is missing.
 
 ## Service JSON for `obs-services`
@@ -405,7 +393,7 @@ The old actually looks like this:
 - About `"recommended"`, most of the options seems to H264 related and are mostly only maximums.
 - `"common"`, the name makes it not understandable at the first sight maybe adding some documention would be good thing.
 
-### New format (WIP)
+### New format
 
 The new format will rely on more strict JSON schemas.
 
@@ -417,11 +405,7 @@ Those JSON Schemas (Draft 2020-12) will be:
 
 Those are all present in `0039-json-schemas` folder with an example of `obs-services` JSON.
 
-*Documentation in schemas are in progress, and a schema for integration plugin should also be made.*
-
 JSON Schema allows to validate `services.json` (in `obs-services` case) when a PR is made against it.
-
-The use of JSON Schema allows to create specific additions for a specific plugin by creating a unique schema for it.
 
 #### Advantages of this format
 

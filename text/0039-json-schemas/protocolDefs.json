@@ -7,19 +7,15 @@
     "$defs": {
         "protocolEnum": {
             "$comment": "Enumeration of protocols",
-            "enum": ["RTMP","RTMPS","FTL","HLS","SRT","RIST"]
+            "enum": ["RTMP","RTMPS","HLS","SRT","RIST","WHIP"]
         },
         "protocolMapEnum": {
             "$comment": "Enumeration of protocols (with '*' as any) that have various compatible codecs",
-            "enum": ["*","RTMP","RTMPS","HLS","SRT","RIST"]
+            "enum": ["*","RTMP","RTMPS","HLS","SRT","RIST","WHIP"]
         },
         "serverPattern": {
             "$comment": "Pattern to enforce a supported server URL",
             "pattern": "^(rtmps?|https?|srt|rist)://"
-        },
-        "notRequireProtocolPattern": {
-            "$comment": "Pattern meant to match with protocol that have a unique URL prefix",
-            "pattern": "^(rtmps?|srt|rist)://"
         },
         "protocolProperties": {
             "$comment": "Per-protocol properties meant for obs-services schema",
