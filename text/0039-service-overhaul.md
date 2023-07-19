@@ -141,7 +141,7 @@ Those services will be able to provide multiple protocols so no more "Service - 
 If a certain protocol is not available, the UI will not show it if the service doesn't support another protocol. Same goes for codecs.
 If it does, the missing protocol will not be shown.
 
-Those services should have no specific behavior like ingest management.
+Those services should have no custom behavior like ingest management like it was done it `rtmp-services` plugin.
 
 In the end, adding streaming service will only be a JSON addition for this plugin.
 Only improvements will be accepted in the code of this plugin.
