@@ -80,7 +80,10 @@ Adding to `obs_service_info`:
   - `void (*apply_encoder_settings2)(void *data, const char *encoder_id, obs_data_t *encoder_settings)`: Replace its non-two variant to enable settings per encoder id and codec
 
 Adding to the Services API:
-  - `enum obs_service_audio_track_cap obs_service_get_audio_track_cap(const obs_service_t *service)`: Return the service audio track capability
+  - `enum obs_service_audio_track_cap obs_service_get_audio_track_cap(const obs_service_t *service)`: Returns the service audio track capability with the following possible values:
+    - `OBS_SERVICE_AUDIO_SINGLE_TRACK` - Only a single audio track is used by the service
+    - `OBS_SERVICE_AUDIO_ARCHIVE_TRACK` - A second audio track is accepted and is meant to become the archive/VOD audio
+    - `OBS_SERVICE_AUDIO_MULTI_TRACK` - Supports multiple audio tracks
   - `uint32_t obs_get_service_flags(const char *id)` and `uint32_t obs_service_get_flags(const obs_service_t *service)`: Return services flags
   - `const char *obs_get_service_supported_protocols(const char *id)`: Return all protocols that the service can support
   - `bool obs_service_can_bandwidth_test(const obs_service_t *service)`: Return if the service has bandwidth test capability
@@ -220,11 +223,9 @@ When created/updated (after these events) the service will add the docks (if int
 When `OBS_FRONTEND_EVENT_PROFILE_CHANGING` `OBS_FRONTEND_EVENT_EXIT` or the service is destroyed, docks will be removed (if integration connected).
 
 #### Browser features
-The Front-end API needs to enable the possibility to access some `obs-browser` related feature like adding browser docks and generating widgets.
+The Front-end API needs to enable the possibility to access some `obs-browser` related feature like adding browser docks (e.g. Chat, Stream Settings) and generating widgets (e.g. login through CEF).
 
-Note: Free functions for each structure that requires it because of a "dynamic" type will be also added.
-
-`bool obs_frontend_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
+`bool obs_frontend_is_browser_available()` will indicate if OBS Studio have the `obs-browser` included and available with a Wayland check on Linux/FreeBSD. This will allow plugins to know if they can use browser features.
 
 ```C++
 struct obs_frontend_browser_params {
