@@ -94,17 +94,17 @@ On X11, ADS provide two type of titlebar for floating docks:
 The QWidget one is used by default when using KWin based Desktop Environement like Plasma. And this titlebar requires some CSS in the themes to match it.
 
 So the QWidget based titlebar usage will be enforced thanks to a flag for the Dock Manager to "unify" experience between desktop environement.
-Theme makers may ignore to theme this bar.
+Theme authors may ignore to theme this bar.
 
 ### Dock state
 *The per profile dock state feature is not taken into account to describe those changes.*
 
 In the global config (`global.ini`).
-- `"dockState"` is kept for for backward compatiblity and no longer overwitten. It will be used if the following state is not present.
-- `"windowState"` is the state of the main window, since it does not store only the state of legacy docks.
+- `"dockState"` is kept for for backward compatiblity and no longer overwritten. It will be used if the following state is not present.
+- `"windowState"` is the state of the main window which also contains legacy docks state.
 - `"advDockState"` is the state of the dock manager which contain only the states of any ADS dock.
 
-Service integrations only save `"advDockProfile"`
+Service integrations only save `"advDockState"`
 
 ADS dock state is compressed by default but behind the scene it's XML.
 
@@ -139,17 +139,19 @@ Those docks are named `obs-$SERVICE_$DOCK_NAME` where `$SERVICE` is the service 
 
 ## Legacy dock
 
-**TODO: Talk about `obs_frontend_add_custom_qdock()`**
-
-The frontend API method `obs_frontend_add_dock()` is put in deprecation. And if dual switch only Qt5 and on Qt 6 the method is removed or does nothing, this is possible because plugin will need to be rebuilt agaisnt Qt6.
-
-And dock added through this method are added to a sub-menu named `Legacy dock` of the Dock menu.
+If the deprecated frontend API method `obs_frontend_add_dock()` is used the dock added through this method are added to a sub-menu named `Legacy dock` of the Dock menu.
 
 [![Legacy dock menu](./0047-switch-to-advanced-docking-system/legacy_dock.png)]()
 
-When openning a legacy dock, a message will appear explaining that those docks will not meld wery well with "new" docks.
+When openning a legacy dock, a message will appear explaining that those docks will not meld wery well with ADS docks.
 
 The state of those are saved through `"windowState"` global config.
+
+`obs_frontend`
+
+### About custom QDockWidget
+
+Docks added through `obs_frontend_add_custom_qdock()` (or `obs_frontend_add_dock()` with the returned QAction deleted)will have almost the same treatment as legacy docks because by design those don't have a QAction in the dock menu.
 
 ## Per profile dock state
 Move the `"advDockState"` from global config to the profile and integration no longer store their own state. `"windowState"` is kept global.
@@ -159,8 +161,8 @@ If a release happen between the switch to ADS and this feature, import the one f
 ## Layouts management
 Add the feature, to switch between registered/saved dock layouts:
 - Though a sub-menu in the dock menu
-- Through a hotkey
 - Through the frontend API
+- Can be extended later to be through a hotkey
 
 OBS Studio could provide layouts, the default count as one.
 
@@ -169,19 +171,15 @@ Plugins could also register their own XML layouts through the frontend API.
 Users could be able to save their own layouts. Those layouts will have their name prefixed with`user_` to avoid name conflicts.
 
 Note: ADS perspective feature is not directly used because it relies heavily on QSettings.
+**TODO: Check if ADS perpective has changed, or maybe upstream improvement to it**
+
 ## Frontend API
 
-**TODO: Talk about obs_frontend_add_dock_by_id() that is now a thing**
+`obs_frontend_add_dock_by_id()` implementation is to be modified to use OBSAdvDock rather than OBSDock.
 
-This allow to add a OBSAdvDock with the given QWidget. Those docks are stored in the Dock Manager and their names is stored in the QStringList for plugins extra docks.
+Default height and width would need to be based on the widget size when added as a dock.
 
-Default height and width would based on the widget actual size.
-
-Minimum sizes used by the dock are based on the widget ones.
-
-### Remove a dock
-
-**TODO: Talk about `obs_frontend_remove_dock()` that is now a thing**
+`obs_frontend_remove_dock()` stay the function to remove the dock.
 
 ### Add a dock layouts
 
@@ -227,29 +225,13 @@ EXPORT void obs_frontend_remove_module_dock_layout(obs_module_t *module,
 
 This allow the plugin to remove a dock layouts from the UI.
 
-### Add a entirely custom dock
+### About custom dock
 
-**TODO: Redo as those will be only legacy docks**
+Switching to ADS would force to deprecate this "feature", plugins authors will have to use only `obs_frontend_add_dock_by_id()`.
 
-```c++
-/* takes ads::CDockWidget */
-#define obs_frontend_add_custom_dock(unique_name, dock)           \
-	obs_frontend_add_module_custom_dock(obs_current_module(), \
-						unique_name, dock)
-EXPORT void obs_frontend_add_module_custom_dock(obs_module_t *module,
-						    const char *unique_name,
-						    void *dock);
-```
-
-Some plugin like [Sources Dock][6], do not add their docks to the Dock menu.
-
-So this method allow to do this but requires the plugin to be link against ADS library.
-
-And the dock will not have OBSAdvDock features.
-
-Even if the plugin has the control over the dock, the the name is changed by the frontend API to be prefixed by the module name.
-
-`obs_frontend_remove_dock()` can be used to remove the reference stored in the Dock Manager. Because their names is stored in the QStringList for plugins custom extra docks.
+- ADS will be built as a static library on most of the platforms and so plugins authors will be unable to use it's API.
+- `obs_frontend_add_custom_qdock()` was a temporary measure until a change of docking system could allow the behavior to be truly deprecated.
+- Custom docks were mainly used to avoid over-filling the docks menu which would create a long list (e.g. [Sources Dock][6]).
 
 ### Get the XML behind a registered dock layout
 *Method meant to allow a Dock Layout editor tool to exist*
@@ -290,13 +272,10 @@ My WIP branches:
 - [Central widget separation][8]
 - [Switch to ADS][3]
 - [Frontend API to add ADS dock][4]
-- [Frontend API to add custom ADS dock][5]
 
 [1]: https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System
 [2]: https://github.com/tytan652/obs-studio/tree/dock_separation
 [3]: https://github.com/tytan652/obs-studio/tree/advanced_docking
 [4]: https://github.com/tytan652/obs-studio/tree/ads_frontend_api
-[5]: https://github.com/tytan652/obs-studio/tree/add_custom_dock
 [6]: https://obsproject.com/forum/resources/source-dock.1317/
-[7]: https://doc.qt.io/qt-5/qobject.html#setProperty
 [8]: https://github.com/tytan652/obs-studio/tree/central_widget_separation
