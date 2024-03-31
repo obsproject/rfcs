@@ -5,8 +5,7 @@
 - Allow the user to switch between pre-made layouts
   - Plugins could register their own
   - Users could save their own
-- Dock added by plugins with the old method are added as "*Legacy dock*"
-- Frontend API methods and events about ADS docks
+- Dock added by plugins with the old methods are added as "*Legacy dock*"
 
 Note: The "central widget" design is kept.
 
@@ -140,7 +139,7 @@ Those docks are named `obs-$SERVICE_$DOCK_NAME` where `$SERVICE` is the service 
 
 ## Legacy dock
 
-If switching to ADS is made at the same as switching to Qt 6. This feature will only concern builds that still use Qt 5 (e.g. Ubuntu 20.04).
+**TODO: Talk about `obs_frontend_add_custom_qdock()`**
 
 The frontend API method `obs_frontend_add_dock()` is put in deprecation. And if dual switch only Qt5 and on Qt 6 the method is removed or does nothing, this is possible because plugin will need to be rebuilt agaisnt Qt6.
 
@@ -171,103 +170,23 @@ Users could be able to save their own layouts. Those layouts will have their nam
 
 Note: ADS perspective feature is not directly used because it relies heavily on QSettings.
 ## Frontend API
-Like said earlier, the method `obs_frontend_add_dock()` is put in deprecation.
 
-All add/remove methods related to ADS requiring a name will require the plugin module to be able to prefix the given name with the module name (`mod_name`) to avoid conflicts.
-
-So the following method will be added to libobs to access modules `mod_name`:
-```c++
-EXPORT const char *obs_get_module_mod_name(obs_module_t *module);
-```
-
-### Add a dock
-```c++
-/* takes QWidget */
-#define obs_frontend_add_dock_2(title, unique_name, widget)           \
-	obs_frontend_add_module_dock(obs_current_module(), title, \
-					 unique_name, widget)
-EXPORT void obs_frontend_add_module_dock(obs_module_t *module,
-					     const char *title,
-					     const char *unique_name,
-					     void *widget);
-```
+**TODO: Talk about obs_frontend_add_dock_by_id() that is now a thing**
 
 This allow to add a OBSAdvDock with the given QWidget. Those docks are stored in the Dock Manager and their names is stored in the QStringList for plugins extra docks.
 
-Default height and width would based on the widget actual size except if `"defaultWidth"` and `"defaultHeight"`  properties are set with the [`setProperty()`][7] method on the widget.
+Default height and width would based on the widget actual size.
 
 Minimum sizes used by the dock are based on the widget ones.
 
 ### Remove a dock
-```c++
-#define obs_frontend_remove_dock(unique_name) \
-	obs_frontend_remove_module_dock(obs_current_module(), unique_name)
-EXPORT void obs_frontend_remove_module_dock(obs_module_t *module,
-						const char *unique_name);
-```
 
-This allow the plugin to remove a dock added earlier.
-
-### Add a browser dock
-```c++
-EXPORT bool obs_frontend_is_browser_available(void);
-```
-
-This allow to know if the running OBS Studio has browser feature enabled. So it return false if OBS Studio was built without browser or is running under Wayland.
-
-```c++
-#define obs_frontend_add_browser_dock(dock_params, browser_params) \
-        obs_frontend_add_module_browser_dock(obs_current_module(), \
-			dock_params, browser_params)
-EXPORT void obs_frontend_add_module_browser_dock(obs_module_t *module,
-			struct obs_frontend_browser_dock_params *dock_params,
-                        struct obs_frontend_browser_params *browser_params);
-```
-
-This allow the plugin to add a dock with a QCefWidget as widget.
-
-If browser docks are added in the module load or post load steps, their parameter will be stored and those will be really added later.
-
-The QCefWidget will get parameters from this structure:
-
-```c++
-struct obs_frontend_browser_params {
-	const char *url;
-	bool enable_cookie;
-	struct dstr startup_script;
-	DARRAY(char *) force_popup_urls;
-};
-```
-
-- `bool enable_cookie`: if true `panel_cookie` will be used. The plugin maker will have to remove the dock the between profile change because the cookie manager is per profile.
-- `struct dstr startup_script` allow to set a startup script for the QCefWidget.
-- `DARRAY(char *) force_popup_urls` allow to set a list of url forced to popup.
-
-And the dock itself will get parameters from this structure:
-
-```c++
-struct obs_frontend_browser_dock_params {
-	const char *unique_name;
-	const char *title;
-	int default_width;
-	int default_height;
-	int min_width;
-	int min_height;
-};
-```
-
-`obs_frontend_remove_dock()` can be used to remove the browser dock.
-
-### Remove browser cookie
-Since enabling cookie is posible, allowing to delete those is required.
-
-```c++
-EXPORT void obs_frontend_delete_browser_cookie(const char *url);
-```
-
-This will remove cookie related to the given URL.
+**TODO: Talk about `obs_frontend_remove_dock()` that is now a thing**
 
 ### Add a dock layouts
+
+**TODO: Refactor API design**
+
 ```c++
 #define obs_frontend_add_dock_layout(title, unique_name, xml_layout) \
 	obs_frontend_add_module_dock_layout(obs_current_module(),    \
@@ -295,6 +214,9 @@ EXPORT void obs_frontend_set_dock_layouts(const char *layout_name);
 This allow the plugin to set a registered dock layouts to the UI, the asked name should come directly from the get list method.
 
 ### Remove a dock layouts
+
+**TODO: Refactor API design**
+
 ```c++
 #define obs_frontend_remove_dock_layout(unique_name) \
 	obs_frontend_remove_module_dock_layout(obs_current_module(), \
@@ -306,6 +228,9 @@ EXPORT void obs_frontend_remove_module_dock_layout(obs_module_t *module,
 This allow the plugin to remove a dock layouts from the UI.
 
 ### Add a entirely custom dock
+
+**TODO: Redo as those will be only legacy docks**
+
 ```c++
 /* takes ads::CDockWidget */
 #define obs_frontend_add_custom_dock(unique_name, dock)           \
