@@ -2,17 +2,17 @@
 
 [OBS Project RFCs]: #obs-project-rfcs
 
-Many changes, including bug fixes and documentation improvements can be
+Many changes, including bug fixes and documentation improvements, can be
 implemented and reviewed via the normal GitHub pull request workflow.
 
 Some changes though are "substantial", and we ask that these be put through a
-bit of a design process and produce a consensus among the OBS Project 
+bit of a design process and produce a consensus among the OBS Project
 community.
 
 The "RFC" (request for comments) process is intended to provide a consistent
 and controlled path for new features, functionality, and changes to undergo
 a peer-review and allow all interested parties to weigh in their comments
-and ensure the direction is consistent with the vison of the project.
+and ensure the direction is consistent with the vision of the project.
 
 
 ## Table of Contents
@@ -67,7 +67,7 @@ If you are unsure if your change requires an RFC, just ask!
 
 A hastily-proposed RFC can hurt its chances of acceptance. Low quality
 proposals, proposals for previously-rejected features, or those that don't fit
-into the projects near or long-term goals, may be quickly rejected, which can 
+into the projects near or long-term goals, may be quickly rejected, which can
 be demotivating for the unprepared contributor. Laying some groundwork ahead of
 the RFC can make the process smoother.
 
@@ -88,15 +88,15 @@ developers is a good indication that the RFC is worth pursuing.
 [What the process is]: #what-the-process-is
 
 In short, to get a major feature added to OBS, one must first get the RFC
-merged into the RFC repository as a markdown file. At that point the RFC is
-"active" and may be implemented with the goal of eventual inclusion into OBS.'
+merged into the RFC repository as a markdown file. At that point, the RFC is
+"active" and may be implemented with the goal of eventual inclusion into OBS.
 It is recommended that no work start on implementation until an RFC is accepted.
 
   - Fork the RFC repo [RFC repository]
   - Copy `0000-template.md` to `text/0000-my-feature.md`. Make sure the title
     is descriptive. RFC number should match the next PR number.
   - Fill in the RFC. Put care into the details: RFCs that do not present
-    convincing motivation, demonstrate lack of understanding of the design's
+    convincing motivation, demonstrate a lack of understanding of the design's
     impact, or are disingenuous about the drawbacks or alternatives tend to
     be poorly-received.
   - Submit a pull request to the [RFC repository]. As a pull request the RFC
@@ -130,7 +130,7 @@ It is recommended that no work start on implementation until an RFC is accepted.
     - For RFCs with lengthy discussion, the motion to FCP is usually preceded by
       a *summary comment* trying to lay out the current state of the discussion
       and major tradeoffs/points of disagreement.
-  - The FCP lasts ten calendar days, so that it is open for at least 5 business
+  - The FCP lasts ten calendar days so that it is open for at least 5 business
     days. This way all parties have a chance to lodge any final objections
     before a decision is reached.
   - In most cases, the FCP period is quiet, and the RFC is either merged or
@@ -141,15 +141,15 @@ It is recommended that no work start on implementation until an RFC is accepted.
 [The RFC life-cycle]: #the-rfc-life-cycle
 
 Once an RFC becomes "active" then authors may implement it and submit the
-feature as a pull request to the OBS Porject (or appropriate module) repo. Being 
+feature as a pull request to the OBS Project (or appropriate module) repo. Being
 "active" is not a rubber stamp, and in particular still does not mean the feature
 will ultimately be merged; it does mean that in principle all the major interested
 parties have agreed to the feature and are amenable to merging it.
 
 Furthermore, the fact that a given RFC has been accepted and is "active"
 implies nothing about what priority is assigned to its implementation, nor does
-it imply anything about whether an OBS Project developer has been assigned the 
-task of implementing the feature. While it is not *necessary* that the author 
+it imply anything about whether an OBS Project developer has been assigned the
+task of implementing the feature. While it is not *necessary* that the author
 of the RFC also write the implementation, it is by far the most effective way
 to see an RFC through to completion: authors should not expect that other project
 developers will take on responsibility for implementing their accepted feature.
@@ -169,23 +169,23 @@ as a "very minor change" is up to the core team to decide.
 ## Reviewing RFCs
 [Reviewing RFCs]: #reviewing-rfcs
 
-While the RFC pull request is up, the team may reach out to the author to 
-discuss the issues in greater detail, and in some cases the topic may be
-discussed at an internal team meeting. In either case a summary from the 
+While the RFC pull request is up, the team may reach out to the author to
+discuss the issues in greater detail, and in some cases, the topic may be
+discussed at an internal team meeting. In either case, a summary from the
 resulting discussions will be posted back to the RFC pull request.
 
 The core team makes final decisions about RFCs after the benefits and drawbacks
 are well understood. These decisions can be made at any time, but the team
 will regularly issue decisions. When a decision is made, the RFC pull request
 will either be merged or closed. In either case, if the reasoning is not clear
-from the discussion in thread, the team will add a comment describing the
+from the discussion in the thread, the team will add a comment describing the
 rationale for the decision.
 
 
 ## Implementing an RFC
 [Implementing an RFC]: #implementing-an-rfc
 
-Some accepted RFCs represent vital features that need to be implemented right 
+Some accepted RFCs represent vital features that need to be implemented right
 away. Other accepted RFCs can represent features that can wait until some
 arbitrary developer feels like doing the work. Every accepted RFC has an
 associated issue tracking its implementation in the relevant OBS Project
@@ -214,7 +214,7 @@ requests may be re-opened when the time is right. There is no formal process
 for when a postponed RFC is reopened. We recommend asking us directly about
 any postponed RFCs in our [official Discord Server].
 
-Usually an RFC pull request marked as "postponed" has already passed an
+Usually, an RFC pull request marked as "postponed" has already passed an
 informal first round of evaluation, namely the round of "do we think we would
 ever possibly consider making this change, as outlined in the RFC pull request,
 or some semi-obvious variation of it." (When the answer to the latter question
